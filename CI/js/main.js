@@ -31,61 +31,87 @@ var preload = function(){
 
 // initialize the game
 var create = function(){
-  Nakama.game.physics.startSystem(Phaser.Physics.ARCADE);
+  Nakama.game.physics.startSystem(Phaser.Physics.P2JS);
+  Nakama.game.physics.p2.restitution = 0.5;
+  Nakama.game.physics.p2.gravity.y = 1000;
 
   //background
   Nakama.game.add.sprite(0, 0, 'sky');
 
-  //platforms
-  platforms = Nakama.game.add.group();
-  platforms.enableBody = true;
-
-  var ground = platforms.create(0, Nakama.game.world.height - 64, 'ground');
-  ground.scale.setTo(2, 2);
-  ground.body.immovable = true;
-  var ledge = platforms.create(300, 450, 'ground');
-  ledge.body.immovable = true;
-  ledge.anchor.setTo(0.5, 0.5);
-  var ledge = platforms.create(500, 350, 'ground');
-  ledge.body.immovable = true;
-  ledge.anchor.setTo(0.5, 0.5);
-  var ledge = platforms.create(400, 250, 'ground');
-  ledge.body.immovable = true;
-  ledge.anchor.setTo(0.5, 0.5);
-
   //player
   player = Nakama.game.add.sprite(32, Nakama.game.world.height - 150, 'dude');
-  Nakama.game.physics.arcade.enable(player);
-  player.body.bounce.y = 0.1;
-  player.body.gravity.y = 1000;
-  player.body.collideWorldBounds = true;
+  player.enableBody = true;
+  Nakama.game.physics.p2.enable(player);
+  player.body.fixedRotation = true;
+  player.body.damping = 0.5;
   player.animations.add('left', [0, 1, 2, 3], 10, true);
   player.animations.add('right', [5, 6, 7, 8], 10, true);
   //cursors
   cursors = Nakama.game.input.keyboard.createCursorKeys();
+
+  //contactMaterials
+  var spriteMaterial = Nakama.game.physics.p2.createMaterial('spriteMaterial', player.body);
+  var worldMaterial = Nakama.game.physics.p2.createMaterial('worldMaterial');
+  var platformMaterial = Nakama.game.physics.p2.createMaterial('worldMaterial');
+
+  Nakama.game.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
+
+  //platforms
+  platforms = Nakama.game.add.group();
+
+  var ground = platforms.create(400, Nakama.game.world.height, 'ground');
+  ground.scale.setTo(2, 2);
+  Nakama.game.physics.p2.enable(ground);
+  ground.body.static = true;
+  ground.body.setMaterial(platformMaterial);
+  //createLedge
+  for(var i = 0; i < 300; i = i + 96){
+    var ledge = platforms.create(400, 484 - i, 'ground');
+    ledge.scale.setTo(1.5, 1);
+    Nakama.game.physics.p2.enable(ledge);
+    ledge.body.static = true;
+    ledge.body.setMaterial(platformMaterial);
+  }
+
+  /*var ledge = platforms.create(300, 450, 'ground');
+  //ledge.body.setMaterial(platformMaterial);
+  ledge.body.static = true;
+  //ledge.anchor.setTo(0.5, 0.5);
+  var ledge = platforms.create(500, 350, 'ground');
+  //ledge.body.setMaterial(platformMaterial);
+  ledge.body.static = true;
+  //ledge.anchor.setTo(0.5, 0.5);
+  var ledge = platforms.create(400, 250, 'ground');
+  ledge.body.setMaterial(platformMaterial);
+  ledge.body.static = true;
+  //ledge.anchor.setTo(0.5, 0.5);*/
+
+
+  //collide
+  var worldPlayerCM = Nakama.game.physics.p2.createContactMaterial(spriteMaterial, worldMaterial, { friction: 0.0 });
+  var platformsPlayerCM = Nakama.game.physics.p2.createContactMaterial(worldMaterial, platformMaterial, { friction: 0.0 });
+
 }
 
 // update game state each frame
 var update = function(){
-  //collider
-  var hitPlatform = Nakama.game.physics.arcade.collide(player, platforms);
 
   //playerMovement
-  player.body.velocity.x = 0;
+  player.body.setZeroVelocity();
   if(cursors.left.isDown){
-    player.body.velocity.x = -150;
+    player.body.moveLeft(150);
     player.animations.play('left');
   }
   else if(cursors.right.isDown){
-    player.body.velocity.x = 150;
+    player.body.moveRight(150);
     player.animations.play('right');
   }
   else {
     player.animations.stop();
     player.frame = 4;
   }
-  if(cursors.up.isDown && player.body.touching.down && hitPlatform){
-    player.body.velocity.y = -500;
+  if(cursors.up.isDown /*&& player.body.touching.down && hitPlatform*/){
+    player.body.moveUp(500);
   }
 }
 
