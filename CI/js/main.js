@@ -1,4 +1,7 @@
 var Nakama = {};
+var jumpTimer = 0;
+var cursors;
+var jumpButton;
 Nakama.configs = {};
 
 window.onload = function(){
@@ -33,13 +36,13 @@ var preload = function(){
 var create = function(){
   Nakama.game.physics.startSystem(Phaser.Physics.P2JS);
   Nakama.game.physics.p2.restitution = 0.5;
-  Nakama.game.physics.p2.gravity.y = 1000;
+  Nakama.game.physics.p2.gravity.y = 300;
 
   //background
   Nakama.game.add.sprite(0, 0, 'sky');
 
   //player
-  player = Nakama.game.add.sprite(32, Nakama.game.world.height - 150, 'dude');
+  player = Nakama.game.add.sprite(32, Nakama.game.world.height - 50, 'dude');
   player.enableBody = true;
   Nakama.game.physics.p2.enable(player);
   player.body.fixedRotation = true;
@@ -48,6 +51,7 @@ var create = function(){
   player.animations.add('right', [5, 6, 7, 8], 10, true);
   //cursors
   cursors = Nakama.game.input.keyboard.createCursorKeys();
+  jumpButton = Nakama.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
   //contactMaterials
   var spriteMaterial = Nakama.game.physics.p2.createMaterial('spriteMaterial', player.body);
@@ -73,20 +77,6 @@ var create = function(){
     ledge.body.setMaterial(platformMaterial);
   }
 
-  /*var ledge = platforms.create(300, 450, 'ground');
-  //ledge.body.setMaterial(platformMaterial);
-  ledge.body.static = true;
-  //ledge.anchor.setTo(0.5, 0.5);
-  var ledge = platforms.create(500, 350, 'ground');
-  //ledge.body.setMaterial(platformMaterial);
-  ledge.body.static = true;
-  //ledge.anchor.setTo(0.5, 0.5);
-  var ledge = platforms.create(400, 250, 'ground');
-  ledge.body.setMaterial(platformMaterial);
-  ledge.body.static = true;
-  //ledge.anchor.setTo(0.5, 0.5);*/
-
-
   //collide
   var worldPlayerCM = Nakama.game.physics.p2.createContactMaterial(spriteMaterial, worldMaterial, { friction: 0.0 });
   var platformsPlayerCM = Nakama.game.physics.p2.createContactMaterial(worldMaterial, platformMaterial, { friction: 0.0 });
@@ -97,7 +87,6 @@ var create = function(){
 var update = function(){
 
   //playerMovement
-  player.body.setZeroVelocity();
   if(cursors.left.isDown){
     player.body.moveLeft(150);
     player.animations.play('left');
@@ -107,12 +96,35 @@ var update = function(){
     player.animations.play('right');
   }
   else {
+    player.body.velocity.x = 0;
     player.animations.stop();
     player.frame = 4;
   }
-  if(cursors.up.isDown /*&& player.body.touching.down && hitPlatform*/){
-    player.body.moveUp(500);
+  if (jumpButton.isDown && Nakama.game.time.now > jumpTimer && checkIfCanJump()){
+        player.body.moveUp(150);
+        jumpTimer = Nakama.game.time.now + 750;
   }
+}
+
+var checkIfCanJump = function(){
+
+    var yAxis = p2.vec2.fromValues(0, 1);
+    var result = false;
+
+    for (var i = 0; i < Nakama.game.physics.p2.world.narrowphase.contactEquations.length; i++)
+    {
+        var c = Nakama.game.physics.p2.world.narrowphase.contactEquations[i];
+
+        if (c.bodyA === player.body.data || c.bodyB === player.body.data)
+        {
+            var d = p2.vec2.dot(c.normalA, yAxis); // Normal dot Y-axis
+            if (c.bodyA === player.body.data) d *= -1;
+            if (d > 0.5) result = true;
+        }
+    }
+
+    return result;
+
 }
 
 // before camera render (mostly for debug)
