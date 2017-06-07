@@ -1,0 +1,15 @@
+{
+"asteroid2": [
+
+    {
+      "density": 2, "friction": 0, "bounce": 0,
+      "filter": { "categoryBits": 1, "maskBits": 65535 },
+      "shape": [   60, 0  ,  87, 14  ,  98, 42  ,  101, 79  ]
+    } ,
+    {
+      "density": 2, "friction": 0, "bounce": 0,
+      "filter": { "categoryBits": 1, "maskBits": 65535 },
+      "shape": [  101,79  ,  53, 117  ,  34, 110  ,  0, 92  ,  0, 52  ,  54, 0  ,  60, 0  ]
+    }
+]
+}

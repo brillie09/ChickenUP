@@ -91,3 +91,93 @@ var update = function(){
 
 // before camera render (mostly for debug)
 var render = function(){}
+
+
+//test đá rơi của a Quang
+/*
+window.onload = function(){
+  game = new Phaser.Game(1280,960,Phaser.AUTO,'',
+    {
+      preload: preload,
+      create: create,
+      update: update,
+      render: render
+    }, false, false
+  );
+}
+
+// preparations before game starts
+var preload = function(){
+  game.scale.minWidth = 640;
+  game.scale.minHeight = 480;
+  game.scale.maxWidth = 1280;
+  game.scale.maxHeight = 960;
+  game.scale.pageAlignHorizontally = true;
+  game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+
+  game.time.advancedTiming = true;
+
+  game.load.image('asteroid2', 'Assets/asteroid2.png');
+  game.load.image('background', 'Assets/starfield.jpg');
+  game.load.physics('physicsData', 'Assets/sprites.json');
+}
+
+var asteroid;
+var timeSinceLastFire = 0;
+var asGroup = [];
+function create() {
+
+    //  Enable p2 physics
+    game.physics.startSystem(Phaser.Physics.P2JS);
+
+    game.physics.p2.restitution = 0;
+
+    background = game.add.tileSprite(0, 0, 1280, 960, 'background');
+
+    game.physics.p2.gravity.y = 1000;
+    asteroid = game.add.physicsGroup(Phaser.Physics.P2JS);
+    cursors = game.input.keyboard.createCursorKeys();
+}
+
+function update() {
+  background.tilePosition.y += 1;
+  timeSinceLastFire += game.time.physicsElapsed;
+  if (cursors.down.isDown && timeSinceLastFire>0.3)
+    {
+      var ball = asteroid.create(game.rnd.between(320,960), 100, 'asteroid2');
+      ball.body.velocity.x = ((game.rnd.between(0, 20)-10)*100);
+
+      ball.body.clearShapes();
+
+      ball.body.loadPolygon('physicsData', 'asteroid2');
+
+      timeSinceLastFire = 0;
+      asGroup.push(ball);
+      //ball.body.onBeginContact.add(hit, this);
+    }
+    if(asGroup.length>0 && timeSinceLastFire>0.8){
+      for(var i=0; i<asGroup.length; i++){
+        if(asGroup[i].body.velocity.x<10
+          && asGroup[i].body.velocity.x>-10
+          && asGroup[i].body.velocity.x!=10
+          && asGroup[i].body.velocity.y<10
+          && asGroup[i].body.velocity.y>-10
+          && asGroup[i].body.velocity.y!=0){
+          asGroup[i].body.setZeroVelocity();
+          asGroup[i].body.static=true;
+          asGroup[i].body.setZeroRotation();
+        }
+      }
+      timeSinceLastFire = 0;
+    }
+}
+
+function hit(body, bodyB, shapeA, shapeB, equation) {
+  equation[0].bodyB.parent.setZeroVelocity();
+  equation[0].bodyB.parent.setZeroRotation();
+  equation[0].bodyB.parent.static=true;
+}
+
+function render() {
+}
+*/
