@@ -31,6 +31,7 @@ preloadGame.prototype = {
         game.load.image("hero", 'Assets/OriginalSprites/hero.png');
         game.load.image("pause", 'Assets/OriginalSprites/pausedmenu.jpg');
         game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
+        game.load.spritesheet('monster', 'Assets/monsters.png');
     },
     create: function(){
         game.state.start("PlayGame");
@@ -40,12 +41,13 @@ var playGame = function(game){}
 playGame.prototype = {
     create: function(){
         game.physics.startSystem(Phaser.Physics.ARCADE);
+        this.keyboard = game.input.keyboard;
         this.canJump = true;
         this.isClimbing = false;
         this.defineGroups();
         this.drawLevel();
         this.defineTweens();
-        game.input.onTap.add(this.handleTap, this);
+        //game.input.onTap.add(this.handleTap, this);
     },
     drawLevel: function(){
         this.currentFloor = 0;
@@ -53,16 +55,29 @@ playGame.prototype = {
         this.highestFloorY = game.height * gameOptions.floorStart;
         this.floorArray = [];
         this.ladderArray = [];
+        this.monsterArray = [];
+        this.isMovingRight = true;
         while(this.highestFloorY > - 3 * gameOptions.floorGap){
                 this.addFloor();
                 if(this.currentFloor >= 0){
                     this.addLadder(this.highestFloorY);
                 }
+                if(this.currentFloor==1 || this.currentFloor==4){
+                  this.addMonster();
+                }
+
                 this.highestFloorY -= gameOptions.floorGap;
                 this.currentFloor ++;
         }
         this.currentFloor = 0;
         this.addHero();
+    },
+    addMonster: function(){
+      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY-40, 'monster');
+      this.monsterGroup.add(monster);
+      game.physics.enable(monster, Phaser.Physics.ARCADE);
+      this.monsterArray.push(monster);
+      monster.body.velocity.x = 100;
     },
     addFloor: function(){
         var floor = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY, "ground");
@@ -93,19 +108,24 @@ playGame.prototype = {
         this.hero.body.onWorldBounds.add(function(sprite, up, down, left, right){
             if(left){
                 this.hero.body.velocity.x = gameOptions.playerSpeed;
+                this.isMovingRight = true;
                 this.hero.scale.x = 1;
             }
             if(right){
                 this.hero.body.velocity.x = -gameOptions.playerSpeed;
+                this.isMovingRight = false;
                 this.hero.scale.x = -1;
             }
             if(down){
-              game.paused = true;
-              pause = game.add.sprite(400, 600, 'pause');
-              pause.anchor.setTo(0.5, 0.5);
-              game.input.onTap.add(this.startAgain, this);
+              this.gameOver();
             }
         }, this)
+    },
+    gameOver: function(){
+      game.paused = true;
+      pause = game.add.sprite(400, 600, 'pause');
+      pause.anchor.setTo(0.5, 0.5);
+      game.input.onTap.add(this.startAgain, this);
     },
     defineTweens: function(){
         this.scrollTween = game.add.tween(this.gameGroup).to({
@@ -113,6 +133,9 @@ playGame.prototype = {
         }, 800, Phaser.Easing.Cubic.Out);
         this.scrollTween.onComplete.add(function(){
                 this.gameGroup.y = 0;
+                this.monsterGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
                 this.floorGroup.forEach(function(item) {
                     item.y += gameOptions.floorGap;
                 }, this);
@@ -140,28 +163,60 @@ playGame.prototype = {
         this.gameGroup = game.add.group();
         this.floorGroup = game.add.group();
         this.ladderGroup = game.add.group();
+        this.monsterGroup = game.add.group();
         this.gameGroup.add(this.floorGroup);
         this.gameGroup.add(this.ladderGroup);
+        this.gameGroup.add(this.monsterGroup);
     },
-    handleTap: function(pointer, doubleTap){
+    /*handleTap: function(pointer, doubleTap){
         if(this.canJump && !this.isClimbing){
             this.hero.body.velocity.y = -gameOptions.playerJump;
             this.canJump = false;
         }
-    },
+    },*/
     startAgain: function(pointer, doubleTap){
       game.paused = false;
       game.state.start('PlayGame');
     },
     update: function(){
-        this.checkFloorCollision();
+        this.checkCollision();
         this.checkLadderCollision();
         this.heroOnLadder();
+        this.updateMonster();
+        this.updateHero();
     },
-    checkFloorCollision: function(){
-        game.physics.arcade.collide(this.hero, this.floorArray, function(){
-            this.canJump = true;
-        }, null, this);
+    updateHero: function(){
+      if (!this.isClimbing){
+        if(this.keyboard.isDown(Phaser.Keyboard.UP)){
+          if(this.canJump){
+              this.hero.body.velocity.y = -gameOptions.playerJump;
+              this.canJump = false;
+          }
+        }
+        if(this.keyboard.isDown(Phaser.Keyboard.LEFT)){
+          this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed-300 : -gameOptions.playerSpeed-300;
+        } else if(this.keyboard.isDown(Phaser.Keyboard.RIGHT)){
+          this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed+300 : -gameOptions.playerSpeed+300;
+        } else{
+          this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed : -gameOptions.playerSpeed;
+        }
+      }
+    },
+    updateMonster: function(){
+      if (this.monsterArray[1].position.x<0) this.monsterArray[1].body.velocity.x=100;
+      if (this.monsterArray[1].position.x>370) this.monsterArray[1].body.velocity.x=-100;
+      if (this.monsterArray[0].position.x<400) this.monsterArray[0].body.velocity.x=100;
+      if (this.monsterArray[0].position.x>870) this.monsterArray[0].body.velocity.x=-100;
+    },
+    checkCollision: function(){
+      //monster collision check
+      game.physics.arcade.collide(this.monsterArray, this.hero, function(){
+          this.gameOver();
+      }, null, this);
+      //floor collision check
+      game.physics.arcade.collide(this.hero, this.floorArray, function(){
+          this.canJump = true;
+      }, null, this);
     },
     checkLadderCollision: function(){
         game.physics.arcade.overlap(this.hero, this.ladderArray, function(player, ladder){
