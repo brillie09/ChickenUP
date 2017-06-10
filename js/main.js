@@ -8,11 +8,9 @@ var gameOptions = {
     floorStart: 1 / 8 * 5,
     floorGap: 250,
     playerGravity: 4500,
-    playerSpeed: 350,
+    playerSpeed: 400,
     climbSpeed: 450,
     playerJump: 900,
-    temp: 0,
-    temp2: 0
 }
 window.onload = function() {
     game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight,{
