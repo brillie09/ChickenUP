@@ -27,17 +27,17 @@ window.onload = function() {
 var preloadGame = function(game){}
 preloadGame.prototype = {
     preload: function(){
-        game.stage.backgroundColor = 0xFFFFFF;
+        game.stage.backgroundColor = 0xabe7ff;
         game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         game.scale.pageAlignHorizontally = true;
         game.scale.pageAlignVertically = true;
         game.stage.disableVisibilityChange = true;
         game.load.image("ground", 'Assets/OriginalSprites/ground.png');
         game.load.image("hero", 'Assets/OriginalSprites/hero.png');
-        game.load.image("pause", 'Assets/OriginalSprites/pausedmenu.jpg');
+        game.load.image("gover", 'Assets/gameover.jpg');
         game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
         game.load.image('monster', 'Assets/monsters.png');
-        game.load.image("banner", 'Assets/OriginalSprites/banner.jpg');
+        game.load.image("banner", 'Assets/banner.jpg');
         game.load.image("button", 'Assets/OriginalSprites/button.png');
         game.load.image("background", 'Assets/sky.png');
     },
@@ -63,24 +63,21 @@ preloadGame.prototype = {
 var gameOver = function(game){}
 gameOver.prototype = {
   create: function(){
-    pause = game.add.sprite(500, 525, 'pause');
-    var urScore = counter;
-    showscore = game.add.text(500, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
-    restart = game.add.text(500, 180, 'Click anywhere to restart', { font: "40px Arial", fill: "#1d71f7", align: "center" });
+    gover = game.add.sprite(0, 400, 'gover');
+    //var urScore = counter;
+    showscore = game.add.text(500, 350, 'SCORE : ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
     showscore.anchor.setTo(0.5,0.5);
-    pause.anchor.setTo(0.5, 0.5);
-    restart.anchor.setTo(0.5, 0.5);
+
     counter = 0;
   },
   update: function(){
     if (game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) game.state.start("PlayGame");
-    for(var i =0; i <10; i++) console.log(i);
   }
 }
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
-      game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
+      //game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
       text.anchor.setTo(0, 0);
       game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
@@ -226,7 +223,7 @@ playGame.prototype = {
     checkCollision: function(){
       //monster collision check
       game.physics.arcade.collide(this.monsterArray, this.hero, function(){
-          this.gameOver();
+        game.state.start('GameOver');
       }, null, this);
       //floor collision check
       game.physics.arcade.collide(this.hero, this.floorArray, function(){
