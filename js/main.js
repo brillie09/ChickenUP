@@ -8,7 +8,7 @@ var gameOptions = {
     floorStart: 1 / 8 * 5,
     floorGap: 250,
     playerGravity: 4500,
-    playerSpeed: 400,
+    playerSpeed: 420,
     climbSpeed: 450,
     playerJump: 900,
 }
@@ -30,23 +30,24 @@ preloadGame.prototype = {
         game.scale.pageAlignHorizontally = true;
         game.scale.pageAlignVertically = true;
         game.stage.disableVisibilityChange = true;
-        game.load.image("ground", 'Assets/OriginalSprites/ground.png');
-        game.load.image("hero", 'Assets/OriginalSprites/hero.png');
+        game.load.image("ground", 'Assets/ground.png');
+        //game.load.image("hero", 'Assets/OriginalSprites/hero.png');
         game.load.image("gover", 'Assets/gameover.jpg');
-        game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
+        game.load.image("ladder", 'Assets/ladder.png');
         game.load.image('monster', 'Assets/monsters.png');
-        game.load.image("banner", 'Assets/banner.jpg');
-        game.load.image("button", 'Assets/OriginalSprites/button.png');
+        game.load.image("button", 'Assets/playbutton.png');
+        game.load.image("howplay", 'Assets/howplay.png');
         game.load.image("background", 'Assets/sky.png');
+        game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
     },
     create: function(){
-      //game.state.start("PlayGame");
+      background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
-      banner = game.add.sprite(500, 525, 'banner');
-      banner.anchor.setTo(0.5, 0.5);
-      button = game.add.button(500, 725, 'button', this.start, this, 2, 1, 0);
+      button = game.add.button(500, 350, 'button', this.start, this, 2, 1, 0);
       button.anchor.setTo(0.5, 0.5);
+      howplay = game.add.button(500, 700, 'howplay', this.howtoplay, this, 2, 1, 0);
+      howplay.anchor.setTo(0.5,0.5)
     },
     update: function(){
       if(game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
@@ -62,10 +63,12 @@ var gameOver = function(game){}
 gameOver.prototype = {
   create: function(){
     gover = game.add.sprite(0, 400, 'gover');
-    //var urScore = counter;
-    showscore = game.add.text(500, 350, 'SCORE : ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
+    showscore = game.add.text(500, 300, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
+    if(localStorage.getItem('highscore')<counter)
+    localStorage.setItem('highscore',counter);
+    hscore = game.add.text(500,400, 'HIGH SCORE: ' + localStorage.getItem('highscore'), { font: "60px Arial", fill: "#ffffff", align: "center" });
     showscore.anchor.setTo(0.5,0.5);
-
+    hscore.anchor.setTo(0.5,0.5);
     counter = 0;
   },
   update: function(){
@@ -75,17 +78,14 @@ gameOver.prototype = {
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
-      //game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
+      game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
       text.anchor.setTo(0, 0);
-      game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
-      //this.keyboard = game.input.keyboard;
       this.canJump = true;
       this.isClimbing = false;
       this.defineGroups();
       this.drawLevel();
       this.defineTweens();
-      //game.input.onTap.add(this.handleTap, this);
     },
     drawLevel: function(){
         this.currentFloor = 0;
@@ -134,11 +134,14 @@ playGame.prototype = {
         this.ladderArray.push(ladder);
     },
     addHero: function(){
-        this.hero = game.add.sprite(50 , game.height * gameOptions.floorStart - 50, "hero");
+        this.hero = game.add.sprite(50 , game.height * gameOptions.floorStart - 58, "hero");
+        this.hero.animations.add('run', [0,1,2,3], 10, true);
+        this.hero.animations.play('run');
         this.gameGroup.add(this.hero)
         this.hero.anchor.set(0.5, 0);
         game.physics.enable(this.hero, Phaser.Physics.ARCADE);
         this.hero.body.collideWorldBounds = true;
+        this.hero.body.bounce.y = 0.3;
         this.hero.body.gravity.y = gameOptions.playerGravity;
         this.hero.body.velocity.x = gameOptions.playerSpeed;
         this.hero.body.onWorldBounds = new Phaser.Signal();
@@ -158,22 +161,7 @@ playGame.prototype = {
             }
         }, this)
     },
-    /*gameOver: function(){
-      game.paused = true;
-      pause = game.add.sprite(500, 525, 'pause');
-      var urScore = counter;
-      showscore = game.add.text(500, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
-      restart = game.add.text(500, 180, 'Click anywhere to restart', { font: "40px Arial", fill: "#1d71f7", align: "center" });
-      showscore.anchor.setTo(0.5,0.5);
-      pause.anchor.setTo(0.5, 0.5);
-      restart.anchor.setTo(0.5, 0.5);
-      game.input.onTap.add(this.startAgain, this);
-      counter = 0;
-    },
-    startAgain: function(pointer, doubleTap){
-      game.paused = false;
-      game.state.start('PlayGame');
-    },*/
+
     defineGroups: function(){
         this.gameGroup = game.add.group();
         this.floorGroup = game.add.group();
@@ -184,6 +172,7 @@ playGame.prototype = {
         this.gameGroup.add(this.monsterGroup);
     },
     update: function(){
+        game.background.tilePosition.y += 0.2;
         this.checkCollision();
         this.checkLadderCollision();
         this.heroOnLadder();
@@ -263,8 +252,8 @@ playGame.prototype = {
                     item.y += gameOptions.floorGap;
                 }, this);
                 this.hero.y += gameOptions.floorGap;
-                /*for (var mons of this.monsterArray)
-                  mons.body.velocity.x += (game.rnd.between(0,6)-3)*100;*/
+                counter++;
+                text.setText('Score: ' + counter);
         }, this)
         this.fadeTween = game.add.tween(this.floorArray[0]).to({
             alpha: 0
@@ -292,7 +281,7 @@ playGame.prototype = {
 
     },
     heroOnLadder: function(){
-        if(this.isClimbing && this.hero.y <= this.floorArray[this.currentFloor].y - 40){
+        if(this.isClimbing && this.hero.y <= this.floorArray[this.currentFloor].y - 58){
             this.hero.body.gravity.y = gameOptions.playerGravity;
             this.hero.body.velocity.x = gameOptions.playerSpeed * this.hero.scale.x;
             this.hero.body.velocity.y = 0;
@@ -301,11 +290,5 @@ playGame.prototype = {
         }
     }
 }
-function updateCounter() {
-    counter++;
-    text.setText('Score: ' + counter);
-}
 function render() {
-    game.debug.text("Time until event: " + game.time.events.duration.toFixed(0), 32, 32);
-    game.debug.text("Next tick: " + game.time.events.next.toFixed(0), 32, 64);
 }
