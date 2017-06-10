@@ -36,11 +36,22 @@ preloadGame.prototype = {
         game.load.image("pause", 'Assets/OriginalSprites/pausedmenu.jpg');
         game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
         game.load.spritesheet('monster', 'Assets/monsters.png');
+        game.load.image("banner", 'Assets/OriginalSprites/banner.jpg');
+        game.load.image("button", 'Assets/OriginalSprites/button.png');
     },
     create: function(){
-        game.state.start("PlayGame");
+      //game.state.start("PlayGame");
+      banner = game.add.sprite(400, 525, 'banner');
+      banner.anchor.setTo(0.5, 0.5);
+      button = game.add.button(400, 725, 'button', start, this, 2, 1, 0);
+      button.anchor.setTo(0.5, 0.5);
     }
 }
+function start(){
+  button.visible = false;
+  game.state.start("PlayGame");
+}
+
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
@@ -129,12 +140,15 @@ playGame.prototype = {
     },
     gameOver: function(){
       game.paused = true;
-      pause = game.add.sprite(400, 600, 'pause');
-      pause.anchor.setTo(0.5, 0.5);
-      game.input.onTap.add(this.startAgain, this);
+      pause = game.add.sprite(400, 525, 'pause');
       var urScore = counter;
       showscore = game.add.text(400, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
+      restart = game.add.text(400, 180, 'Click anywhere to restart', { font: "40px Arial", fill: "#1d71f7", align: "center" });
       showscore.anchor.setTo(0.5,0.5);
+      pause.anchor.setTo(0.5, 0.5);
+      restart.anchor.setTo(0.5, 0.5);
+      game.input.onTap.add(this.startAgain, this);
+      counter = 0;
     },
 
     defineGroups: function(){
@@ -183,11 +197,11 @@ playGame.prototype = {
     updateMonster: function(){
       for(var i = 0; i<this.monsterArray.length;i++){
         if (i %2 == 1){
-          if(this.monsterArray[i].position.x<400) this.monsterArray[i].body.velocity.x=100;
-          if(this.monsterArray[i].position.x>760) this.monsterArray[i].body.velocity.x=-100;
+          if(this.monsterArray[i].position.x<400) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x>760) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
         }else{
-          if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=100;
-          if(this.monsterArray[i].position.x>360) this.monsterArray[i].body.velocity.x=-100;
+          if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x>360) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
         }
       }
     },
