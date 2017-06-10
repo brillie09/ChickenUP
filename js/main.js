@@ -1,4 +1,6 @@
 //ver2 dùng arcade physics
+var text =0;
+var counter =0;
 var game;
 var gameOptions = {
     gameWidth: 800,
@@ -13,7 +15,9 @@ var gameOptions = {
     temp2: 0
 }
 window.onload = function() {
-    game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight);
+    game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight,{
+      render : render
+    });
     game.state.add("PreloadGame", preloadGame);
     game.state.add("PlayGame", playGame);
     game.state.start("PreloadGame");
@@ -40,6 +44,10 @@ preloadGame.prototype = {
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
+    //  score
+        text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
+        text.anchor.setTo(0, 0);
+        game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
         game.physics.startSystem(Phaser.Physics.ARCADE);
         this.keyboard = game.input.keyboard;
         this.canJump = true;
@@ -52,6 +60,7 @@ playGame.prototype = {
     drawLevel: function(){
         this.currentFloor = 0;
         this.currentLadder = 0;
+        this.currentMonster = 0;
         this.highestFloorY = game.height * gameOptions.floorStart;
         this.floorArray = [];
         this.ladderArray = [];
@@ -60,12 +69,9 @@ playGame.prototype = {
         while(this.highestFloorY > - 3 * gameOptions.floorGap){
                 this.addFloor();
                 if(this.currentFloor >= 0){
-                    this.addLadder(this.highestFloorY);
-                }
-                if(this.currentFloor==1 || this.currentFloor==4){
+                  this.addLadder(this.highestFloorY);
                   this.addMonster();
                 }
-
                 this.highestFloorY -= gameOptions.floorGap;
                 this.currentFloor ++;
         }
@@ -77,7 +83,7 @@ playGame.prototype = {
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
       this.monsterArray.push(monster);
-      monster.body.velocity.x = 100;
+      monster.body.velocity.x = game.rnd.between(100,200);
     },
     addFloor: function(){
         var floor = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY, "ground");
@@ -126,39 +132,11 @@ playGame.prototype = {
       pause = game.add.sprite(400, 600, 'pause');
       pause.anchor.setTo(0.5, 0.5);
       game.input.onTap.add(this.startAgain, this);
+      var urScore = counter;
+      showscore = game.add.text(400, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
+      showscore.anchor.setTo(0.5,0.5);
     },
-    defineTweens: function(){
-        this.scrollTween = game.add.tween(this.gameGroup).to({
-            y: gameOptions.floorGap
-        }, 800, Phaser.Easing.Cubic.Out);
-        this.scrollTween.onComplete.add(function(){
-                this.gameGroup.y = 0;
-                this.monsterGroup.forEach(function(item) {
-                    item.y += gameOptions.floorGap;
-                }, this);
-                this.floorGroup.forEach(function(item) {
-                    item.y += gameOptions.floorGap;
-                }, this);
-                this.ladderGroup.forEach(function(item) {
-                    item.y += gameOptions.floorGap;
-                }, this);
-                this.hero.y += gameOptions.floorGap;
-        }, this)
-        this.fadeTween = game.add.tween(this.floorArray[0]).to({
-            alpha: 0
-        }, 200, Phaser.Easing.Cubic.Out);
-        this.fadeTween.onComplete.add(function(floor){
-                floor.y = this.highestFloorY;
-                floor.alpha =1;
-        }, this);
-        this.fadeLadder = game.add.tween(this.ladderArray[0]).to({
-            alpha: 0
-        }, 200, Phaser.Easing.Cubic.Out);
-        this.fadeLadder.onComplete.add(function(ladder){
-                ladder.y = this.highestFloorY;
-                ladder.alpha =1;
-        }, this);
-    },
+
     defineGroups: function(){
         this.gameGroup = game.add.group();
         this.floorGroup = game.add.group();
@@ -203,10 +181,15 @@ playGame.prototype = {
       }
     },
     updateMonster: function(){
-      if (this.monsterArray[1].position.x<0) this.monsterArray[1].body.velocity.x=100;
-      if (this.monsterArray[1].position.x>370) this.monsterArray[1].body.velocity.x=-100;
-      if (this.monsterArray[0].position.x<400) this.monsterArray[0].body.velocity.x=100;
-      if (this.monsterArray[0].position.x>870) this.monsterArray[0].body.velocity.x=-100;
+      for(var i = 0; i<this.monsterArray.length;i++){
+        if (i %2 == 1){
+          if(this.monsterArray[i].position.x<400) this.monsterArray[i].body.velocity.x=100;
+          if(this.monsterArray[i].position.x>760) this.monsterArray[i].body.velocity.x=-100;
+        }else{
+          if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=100;
+          if(this.monsterArray[i].position.x>360) this.monsterArray[i].body.velocity.x=-100;
+        }
+      }
     },
     checkCollision: function(){
       //monster collision check
@@ -231,8 +214,55 @@ playGame.prototype = {
                 this.scrollTween.start();
                 this.fadeLadder.target =  this.ladderArray[this.currentLadder];
                 this.fadeLadder.start();
+                this.fadeMonster.target =  this.monsterArray[this.currentMonster];
+                this.fadeMonster.start();
+                this.currentMonster = (this.currentMonster+1) % this.monsterArray.length;
             }
         }, null, this);
+    },
+    defineTweens: function(){
+        this.scrollTween = game.add.tween(this.gameGroup).to({
+            y: gameOptions.floorGap
+        }, 800, Phaser.Easing.Cubic.Out);
+        this.scrollTween.onComplete.add(function(){
+                this.gameGroup.y = 0;
+                this.monsterGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.floorGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.ladderGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.hero.y += gameOptions.floorGap;
+                /*for (var mons of this.monsterArray)
+                  mons.body.velocity.x += (game.rnd.between(0,6)-3)*100;*/
+        }, this)
+        this.fadeTween = game.add.tween(this.floorArray[0]).to({
+            alpha: 0
+        }, 200, Phaser.Easing.Cubic.Out);
+        this.fadeTween.onComplete.add(function(floor){
+                floor.y = this.highestFloorY;
+                floor.alpha =1;
+        }, this);
+
+        this.fadeLadder = game.add.tween(this.ladderArray[0]).to({
+            alpha: 0
+        }, 200, Phaser.Easing.Cubic.Out);
+        this.fadeLadder.onComplete.add(function(ladder){
+                ladder.y = this.highestFloorY;
+                ladder.alpha =1;
+        }, this);
+
+        this.fadeMonster = game.add.tween(this.monsterArray[0]).to({
+            alpha: 0
+        }, 200, Phaser.Easing.Cubic.Out);
+        this.fadeMonster.onComplete.add(function(monster){
+                monster.y = this.highestFloorY-40;
+                monster.alpha =1;
+        }, this);
+
     },
     heroOnLadder: function(){
         if(this.isClimbing && this.hero.y <= this.floorArray[this.currentFloor].y - 40){
@@ -243,4 +273,12 @@ playGame.prototype = {
             this.currentLadder = (this.currentLadder + 1) % this.ladderArray.length;
         }
     }
+}
+function updateCounter() {
+    counter++;
+    text.setText('Score: ' + counter);
+}
+function render() {
+    game.debug.text("Time until event: " + game.time.events.duration.toFixed(0), 32, 32);
+    game.debug.text("Next tick: " + game.time.events.next.toFixed(0), 32, 64);
 }
