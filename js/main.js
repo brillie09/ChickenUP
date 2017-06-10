@@ -31,12 +31,11 @@ preloadGame.prototype = {
         game.scale.pageAlignVertically = true;
         game.stage.disableVisibilityChange = true;
         game.load.image("ground", 'Assets/ground.png');
-        //game.load.image("hero", 'Assets/OriginalSprites/hero.png');
         game.load.image("gover", 'Assets/gameover.jpg');
         game.load.image("ladder", 'Assets/ladder.png');
         game.load.image('monster', 'Assets/monsters.png');
         game.load.image("button", 'Assets/playbutton.png');
-        game.load.image("howplay", 'Assets/howplay.png');
+        game.load.image("instruct", 'Assets/instruct.png');
         game.load.image("background", 'Assets/sky.png');
         game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
     },
@@ -44,12 +43,14 @@ preloadGame.prototype = {
       background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
-      button = game.add.button(500, 350, 'button', this.start, this, 2, 1, 0);
+      button = game.add.button(500, 450, 'button', this.start, this, 2, 1, 0);
       button.anchor.setTo(0.5, 0.5);
-      howplay = game.add.button(500, 700, 'howplay', this.howtoplay, this, 2, 1, 0);
-      howplay.anchor.setTo(0.5,0.5)
+      game.add.sprite(0,950,'instruct');
+      //howplay = game.add.button(500, 700, 'howplay', this.howtoplay, this, 2, 1, 0);
+      //howplay.anchor.setTo(0.5,0.5)
     },
     update: function(){
+      background.tilePosition.y += 1;
       if(game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
         this.start();
       }
