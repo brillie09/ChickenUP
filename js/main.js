@@ -1,10 +1,7 @@
 //ver2 dùng arcade physics
 var text =0;
 var counter =0;
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
-=======
 var button;
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
 var game;
 var gameOptions = {
     gameWidth: 1000,
@@ -35,14 +32,12 @@ preloadGame.prototype = {
         game.scale.pageAlignVertically = true;
         game.stage.disableVisibilityChange = true;
         game.load.image("ground", 'Assets/ground.png');
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
         game.load.image("gover", 'Assets/gameover.jpg');
         game.load.image("ladder", 'Assets/ladder.png');
         game.load.image('monster', 'Assets/monsters.png');
         game.load.image("button", 'Assets/playbutton.png');
         game.load.image("instruct", 'Assets/instruct.png');
         game.load.image("background", 'Assets/sky.png');
-=======
         game.load.image("gover", 'Assets/gameover.png');
         game.load.image("ladder", 'Assets/ladder.png');
         game.load.spritesheet('monster', 'Assets/monsters.png', 42, 38, 4);
@@ -50,22 +45,18 @@ preloadGame.prototype = {
         game.load.image("instruct", 'Assets/instruct.png');
         game.load.image("background", 'Assets/sky.png');
         game.load.image("title", 'Assets/title.png');
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
         game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
     },
     create: function(){
       background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
       button = game.add.button(500, 450, 'button', this.start, this, 2, 1, 0);
-=======
       title = game.add.sprite(500, 350, 'title');
       title.anchor.setTo(0.5, 0.5);
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
       button = game.add.button(500, 650, 'button', this.start, this, 1, 0, 1);
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
       button.anchor.setTo(0.5, 0.5);
       game.add.sprite(0,880,'instruct');
       //howplay = game.add.button(500, 700, 'howplay', this.howtoplay, this, 2, 1, 0);
@@ -74,19 +65,12 @@ preloadGame.prototype = {
     update: function(){
       background.tilePosition.y += 1;
       if(game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
-=======
         button.frame = 1;
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
         this.start();
       }
     },
     start: function(){
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
-      button.visible = false;
-=======
       button.setFrames(4, 3, 5);
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
       game.state.start("PlayGame");
     }
 }
@@ -95,20 +79,12 @@ gameOver.prototype = {
   create: function(){
     background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
     gover = game.add.sprite(0, 400, 'gover');
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
-    showscore = game.add.text(500, 300, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
-=======
     showscore = game.add.text(500, 200, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
     if(localStorage.getItem('highscore')<counter)
     localStorage.setItem('highscore',counter);
     if(localStorage.getItem('highscore')==null)
     localStorage.setItem('highscore',0);
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
-    hscore = game.add.text(500,400, 'HIGH SCORE: ' + localStorage.getItem('highscore'), { font: "60px Arial", fill: "#ffffff", align: "center" });
-=======
     hscore = game.add.text(500,300, 'HIGH SCORE: ' + localStorage.getItem('highscore'), { font: "60px Arial", fill: "#ffffff", align: "center" });
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
     showscore.anchor.setTo(0.5,0.5);
     hscore.anchor.setTo(0.5,0.5);
     counter = 0;
@@ -152,13 +128,11 @@ playGame.prototype = {
         this.addHero();
     },
     addMonster: function(){
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
       var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY-40, 'monster');
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
       this.monsterArray.push(monster);
       monster.body.velocity.x = game.rnd.between(100,200);
-=======
         var ary = [38, 116],
             aryM = [game.rnd.between(100, 200), game.rnd.between(-200, -100)];
         var randomY = game.rnd.pick(ary),
@@ -180,7 +154,6 @@ playGame.prototype = {
                 monster.scale.x = -1;
             }
         }, this);
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
     },
     addFloor: function(){
         var floor = game.add.sprite((game.width / 2)*((this.currentFloor % 2)*2), this.highestFloorY, "ground");
@@ -201,11 +174,7 @@ playGame.prototype = {
         this.ladderArray.push(ladder);
     },
     addHero: function(){
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
-        this.hero = game.add.sprite(50 , game.height * gameOptions.floorStart - 58, "hero");
-=======
         this.hero = game.add.sprite(60 , game.height * gameOptions.floorStart - 174, "hero");
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
         this.hero.animations.add('run', [0,1,2,3], 10, true);
         this.hero.animations.play('run');
         this.gameGroup.add(this.hero)
@@ -230,7 +199,6 @@ playGame.prototype = {
             if(down){
               game.state.start('GameOver');
             }
-<<<<<<< 8d89ec1f667c078812dc130a2680d715918d9f6f
         }, this)
     },
 
@@ -350,9 +318,6 @@ playGame.prototype = {
                 monster.y = this.highestFloorY-40;
                 monster.alpha =1;
         }, this);
-
-=======
-        }, this);
     },
 
     defineGroups: function(){
@@ -428,7 +393,6 @@ playGame.prototype = {
                 this.currentMonster = (this.currentMonster+1) % this.monsterArray.length;
             }
         }, null, this);
->>>>>>> 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
     },
     defineTweens: function(){
         this.scrollTween = game.add.tween(this.gameGroup).to({
