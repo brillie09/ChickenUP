@@ -63,6 +63,7 @@ preloadGame.prototype = {
 var gameOver = function(game){}
 gameOver.prototype = {
   create: function(){
+    background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
     gover = game.add.sprite(0, 400, 'gover');
     showscore = game.add.text(500, 300, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
     if(localStorage.getItem('highscore')<counter)
@@ -75,6 +76,7 @@ gameOver.prototype = {
     counter = 0;
   },
   update: function(){
+    background.tilePosition.y += 1;
     if (game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) game.state.start("PlayGame");
   }
 }
