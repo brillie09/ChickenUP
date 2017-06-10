@@ -3,7 +3,7 @@ var text =0;
 var counter =0;
 var game;
 var gameOptions = {
-    gameWidth: 800,
+    gameWidth: 1000,
     gameHeight: 1050,
     floorStart: 1 / 8 * 5,
     floorGap: 250,
@@ -44,9 +44,9 @@ preloadGame.prototype = {
       //game.state.start("PlayGame");
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
-      banner = game.add.sprite(400, 525, 'banner');
+      banner = game.add.sprite(500, 525, 'banner');
       banner.anchor.setTo(0.5, 0.5);
-      button = game.add.button(400, 725, 'button', start, this, 2, 1, 0);
+      button = game.add.button(500, 725, 'button', start, this, 2, 1, 0);
       button.anchor.setTo(0.5, 0.5);
     },
     update: function(){
@@ -63,7 +63,7 @@ function start(){
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
-      game.background = game.add.tileSprite(0, 0, 800, 1050, 'background');
+      game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
         text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
         text.anchor.setTo(0, 0);
         game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
@@ -104,7 +104,8 @@ playGame.prototype = {
       monster.body.velocity.x = game.rnd.between(100,200);
     },
     addFloor: function(){
-        var floor = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY, "ground");
+        var floor = game.add.sprite((game.width / 2)*((this.currentFloor % 2)*2), this.highestFloorY, "ground");
+        floor.scale.x = (this.currentFloor % 2 == 0) ? 1 : -1 ;
         this.floorGroup.add(floor);
         game.physics.enable(floor, Phaser.Physics.ARCADE);
         floor.body.immovable = true;
@@ -147,10 +148,10 @@ playGame.prototype = {
     },
     gameOver: function(){
       game.paused = true;
-      pause = game.add.sprite(400, 525, 'pause');
+      pause = game.add.sprite(500, 525, 'pause');
       var urScore = counter;
-      showscore = game.add.text(400, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
-      restart = game.add.text(400, 180, 'Click anywhere to restart', { font: "40px Arial", fill: "#1d71f7", align: "center" });
+      showscore = game.add.text(500, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
+      restart = game.add.text(500, 180, 'Click anywhere to restart', { font: "40px Arial", fill: "#1d71f7", align: "center" });
       showscore.anchor.setTo(0.5,0.5);
       pause.anchor.setTo(0.5, 0.5);
       restart.anchor.setTo(0.5, 0.5);
@@ -205,11 +206,11 @@ playGame.prototype = {
     updateMonster: function(){
       for(var i = 0; i<this.monsterArray.length;i++){
         if (i %2 == 1){
-          if(this.monsterArray[i].position.x<400) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
-          if(this.monsterArray[i].position.x>760) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x<500) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x>960) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
         }else{
           if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
-          if(this.monsterArray[i].position.x>360) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x>460) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
         }
       }
     },
