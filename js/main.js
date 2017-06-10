@@ -27,9 +27,9 @@ preloadGame.prototype = {
         game.scale.pageAlignHorizontally = true;
         game.scale.pageAlignVertically = true;
         game.stage.disableVisibilityChange = true;
-        game.load.image("ground", 'assets/OriginalSprites/ground.png');
-        game.load.image("hero", 'assets/OriginalSprites/hero.png');
-        game.load.image("ladder", 'assets/OriginalSprites/ladder.png');
+        game.load.image("ground", 'Assets/OriginalSprites/ground.png');
+        game.load.image("hero", 'Assets/OriginalSprites/hero.png');
+        game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
         /*game.load.image('ground', 'assets/OriginalSprites/platform.png');
         game.load.spritesheet('dude', 'assets/OriginalSprites/dude.png', 32, 48);
         game.load.image("ladder", 'assets/OriginalSprites/ladder.png');*/
