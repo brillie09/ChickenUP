@@ -67,6 +67,8 @@ gameOver.prototype = {
     showscore = game.add.text(500, 300, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
     if(localStorage.getItem('highscore')<counter)
     localStorage.setItem('highscore',counter);
+    if(localStorage.getItem('highscore')==null)
+    localStorage.setItem('highscore',0);
     hscore = game.add.text(500,400, 'HIGH SCORE: ' + localStorage.getItem('highscore'), { font: "60px Arial", fill: "#ffffff", align: "center" });
     showscore.anchor.setTo(0.5,0.5);
     hscore.anchor.setTo(0.5,0.5);
