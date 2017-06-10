@@ -38,13 +38,21 @@ preloadGame.prototype = {
         game.load.spritesheet('monster', 'Assets/monsters.png');
         game.load.image("banner", 'Assets/OriginalSprites/banner.jpg');
         game.load.image("button", 'Assets/OriginalSprites/button.png');
+        game.load.image("background", 'Assets/sky.png');
     },
     create: function(){
       //game.state.start("PlayGame");
+      game.physics.startSystem(Phaser.Physics.ARCADE);
+      game.keyboard = game.input.keyboard;
       banner = game.add.sprite(400, 525, 'banner');
       banner.anchor.setTo(0.5, 0.5);
       button = game.add.button(400, 725, 'button', start, this, 2, 1, 0);
       button.anchor.setTo(0.5, 0.5);
+    },
+    update: function(){
+      if(game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+        start();
+      }
     }
 }
 function start(){
@@ -55,11 +63,10 @@ function start(){
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
-    //  score
+      game.background = game.add.tileSprite(0, 0, 800, 1050, 'background');
         text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
         text.anchor.setTo(0, 0);
         game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
-        game.physics.startSystem(Phaser.Physics.ARCADE);
         this.keyboard = game.input.keyboard;
         this.canJump = true;
         this.isClimbing = false;
@@ -114,7 +121,7 @@ playGame.prototype = {
         this.ladderArray.push(ladder);
     },
     addHero: function(){
-        this.hero = game.add.sprite(10 , game.height * gameOptions.floorStart - 50, "hero");
+        this.hero = game.add.sprite(50 , game.height * gameOptions.floorStart - 50, "hero");
         this.gameGroup.add(this.hero)
         this.hero.anchor.set(0.5, 0);
         game.physics.enable(this.hero, Phaser.Physics.ARCADE);
@@ -171,6 +178,7 @@ playGame.prototype = {
       game.state.start('PlayGame');
     },
     update: function(){
+    game.background.tilePosition.y +=  1;
         this.checkCollision();
         this.checkLadderCollision();
         this.heroOnLadder();
