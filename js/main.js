@@ -2,7 +2,7 @@
 var game;
 var gameOptions = {
     gameWidth: 800,
-    gameHeight: 1300,
+    gameHeight: 1050,
     floorStart: 1 / 8 * 5,
     floorGap: 250,
     playerGravity: 4500,
@@ -29,6 +29,7 @@ preloadGame.prototype = {
         game.stage.disableVisibilityChange = true;
         game.load.image("ground", 'Assets/OriginalSprites/ground.png');
         game.load.image("hero", 'Assets/OriginalSprites/hero.png');
+        game.load.image("pause", 'Assets/OriginalSprites/pausedmenu.jpg');
         game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
         /*game.load.image('ground', 'assets/OriginalSprites/platform.png');
         game.load.spritesheet('dude', 'assets/OriginalSprites/dude.png', 32, 48);
@@ -47,6 +48,7 @@ playGame.prototype = {
         this.defineGroups();
         this.drawLevel();
         this.defineTweens();
+        //game.input.onDown.add(this.handleTap, this);
         game.input.onTap.add(this.handleTap, this);
     },
     drawLevel: function(){
@@ -57,16 +59,18 @@ playGame.prototype = {
         this.ladderArray = [];
         while(this.highestFloorY > - 3 * gameOptions.floorGap){
                 this.addFloor();
-                if(this.currentFloor > 0){
+                if(this.currentFloor >= 0){
                     this.addLadder();
                 }
                 this.highestFloorY -= gameOptions.floorGap;
                 this.currentFloor ++;
+
         }
         this.currentFloor = 0;
         this.addHero();
     },
     addFloor: function(){
+        var floorTemp = this.currentFloor % 2 == 0 ? ((game.width / 2) - 400) : ((game.width / 2));
         var floor = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY, "ground");
         this.floorGroup.add(floor);
         game.physics.enable(floor, Phaser.Physics.ARCADE);
@@ -75,7 +79,8 @@ playGame.prototype = {
         this.floorArray.push(floor);
     },
     addLadder: function(){
-        var ladder = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + 100, this.highestFloorY, "ladder");
+        var ladderPos = this.currentFloor % 2 == 0 ? ((game.width / 2) - 100) : ((game.width / 2) + 100)
+        var ladder = game.add.sprite(ladderPos, this.highestFloorY, "ladder");
         this.ladderGroup.add(ladder);
         ladder.anchor.set(0.5, 0);
         game.physics.enable(ladder, Phaser.Physics.ARCADE);
@@ -99,6 +104,12 @@ playGame.prototype = {
             if(right){
                 this.hero.body.velocity.x = -gameOptions.playerSpeed;
                 this.hero.scale.x = -1;
+            }
+            if(down){
+              game.paused = true;
+              pause = game.add.sprite(400, 600, 'pause');
+              pause.anchor.setTo(0.5, 0.5);
+              game.input.onTap.add(this.startAgain, this);
             }
         }, this)
     },
@@ -137,11 +148,19 @@ playGame.prototype = {
             this.canJump = false;
         }
     },
+    startAgain: function(pointer, doubleTap){
+      game.paused = false;
+      game.state.start('PlayGame');
+    },
     update: function(){
         this.checkFloorCollision();
         this.checkLadderCollision();
         this.heroOnLadder();
+        //this.checkDeadCollision();
     },
+    /*checkDeadCollision: function(){
+      game.physics.arcade.collide(this.hero, )
+    },*/
     checkFloorCollision: function(){
         game.physics.arcade.collide(this.hero, this.floorArray, function(){
             this.canJump = true;
