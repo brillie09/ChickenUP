@@ -1,7 +1,187 @@
+//ver2 dùng arcade physics
+var game;
+var gameOptions = {
+    gameWidth: 800,
+    gameHeight: 1300,
+    floorStart: 1 / 8 * 5,
+    floorGap: 250,
+    playerGravity: 4500,
+    playerSpeed: 450,
+    climbSpeed: 450,
+    playerJump: 900,
+    temp: 0,
+    temp2: 0
+}
+window.onload = function() {
+    game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight);
+    game.state.add("PreloadGame", preloadGame);
+    game.state.add("PlayGame", playGame);
+    game.state.start("PreloadGame");
+}
+
+var preloadGame = function(game){}
+preloadGame.prototype = {
+    preload: function(){
+        game.stage.backgroundColor = 0xFFFFFF;
+        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        game.scale.pageAlignHorizontally = true;
+        game.scale.pageAlignVertically = true;
+        game.stage.disableVisibilityChange = true;
+        game.load.image("ground", 'assets/OriginalSprites/ground.png');
+        game.load.image("hero", 'assets/OriginalSprites/hero.png');
+        game.load.image("ladder", 'assets/OriginalSprites/ladder.png');
+        /*game.load.image('ground', 'assets/OriginalSprites/platform.png');
+        game.load.spritesheet('dude', 'assets/OriginalSprites/dude.png', 32, 48);
+        game.load.image("ladder", 'assets/OriginalSprites/ladder.png');*/
+    },
+    create: function(){
+        game.state.start("PlayGame");
+    }
+}
+var playGame = function(game){}
+playGame.prototype = {
+    create: function(){
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        this.canJump = true;
+        this.isClimbing = false;
+        this.defineGroups();
+        this.drawLevel();
+        this.defineTweens();
+        game.input.onTap.add(this.handleTap, this);
+    },
+    drawLevel: function(){
+        this.currentFloor = 0;
+        this.currentLadder = 0;
+        this.highestFloorY = game.height * gameOptions.floorStart;
+        this.floorArray = [];
+        this.ladderArray = [];
+        while(this.highestFloorY > - 3 * gameOptions.floorGap){
+                this.addFloor();
+                if(this.currentFloor > 0){
+                    this.addLadder();
+                }
+                this.highestFloorY -= gameOptions.floorGap;
+                this.currentFloor ++;
+        }
+        this.currentFloor = 0;
+        this.addHero();
+    },
+    addFloor: function(){
+        var floor = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY, "ground");
+        this.floorGroup.add(floor);
+        game.physics.enable(floor, Phaser.Physics.ARCADE);
+        floor.body.immovable = true;
+        floor.body.checkCollision.down = false;
+        this.floorArray.push(floor);
+    },
+    addLadder: function(){
+        var ladder = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + 100, this.highestFloorY, "ladder");
+        this.ladderGroup.add(ladder);
+        ladder.anchor.set(0.5, 0);
+        game.physics.enable(ladder, Phaser.Physics.ARCADE);
+        ladder.body.immovable = true;
+        this.ladderArray.push(ladder);
+    },
+    addHero: function(){
+        this.hero = game.add.sprite(10 , game.height * gameOptions.floorStart - 50, "hero");
+        this.gameGroup.add(this.hero)
+        this.hero.anchor.set(0.5, 0);
+        game.physics.enable(this.hero, Phaser.Physics.ARCADE);
+        this.hero.body.collideWorldBounds = true;
+        this.hero.body.gravity.y = gameOptions.playerGravity;
+        this.hero.body.velocity.x = gameOptions.playerSpeed;
+        this.hero.body.onWorldBounds = new Phaser.Signal();
+        this.hero.body.onWorldBounds.add(function(sprite, up, down, left, right){
+            if(left){
+                this.hero.body.velocity.x = gameOptions.playerSpeed;
+                this.hero.scale.x = 1;
+            }
+            if(right){
+                this.hero.body.velocity.x = -gameOptions.playerSpeed;
+                this.hero.scale.x = -1;
+            }
+        }, this)
+    },
+    defineTweens: function(){
+        this.scrollTween = game.add.tween(this.gameGroup).to({
+            y: gameOptions.floorGap
+        }, 800, Phaser.Easing.Cubic.Out);
+        this.scrollTween.onComplete.add(function(){
+                this.gameGroup.y = 0;
+                this.floorGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.ladderGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.hero.y += gameOptions.floorGap;
+        }, this)
+        this.fadeTween = game.add.tween(this.floorArray[0]).to({
+            alpha: 0
+        }, 200, Phaser.Easing.Cubic.Out);
+        this.fadeTween.onComplete.add(function(floor){
+                floor.y = this.highestFloorY;
+                floor.alpha =1;
+        }, this);
+    },
+    defineGroups: function(){
+        this.gameGroup = game.add.group();
+        this.floorGroup = game.add.group();
+        this.ladderGroup = game.add.group();
+        this.gameGroup.add(this.floorGroup);
+        this.gameGroup.add(this.ladderGroup);
+    },
+    handleTap: function(pointer, doubleTap){
+        if(this.canJump && !this.isClimbing){
+            this.hero.body.velocity.y = -gameOptions.playerJump;
+            this.canJump = false;
+        }
+    },
+    update: function(){
+        this.checkFloorCollision();
+        this.checkLadderCollision();
+        this.heroOnLadder();
+    },
+    checkFloorCollision: function(){
+        game.physics.arcade.collide(this.hero, this.floorArray, function(){
+            this.canJump = true;
+        }, null, this);
+    },
+    checkLadderCollision: function(){
+        game.physics.arcade.overlap(this.hero, this.ladderArray, function(player, ladder){
+            if(!this.isClimbing && Math.abs(player.x - ladder.x) < 10){
+                this.hero.body.velocity.x = 0;
+                this.hero.body.velocity.y = - gameOptions.climbSpeed;
+                this.hero.body.gravity.y = 0;
+                this.isClimbing = true;
+                this.fadeTween.target =  this.floorArray[this.currentFloor];
+                this.currentFloor = (this.currentFloor + 1) % this.floorArray.length;
+                this.fadeTween.start();
+                this.scrollTween.start();
+            }
+        }, null, this);
+    },
+    heroOnLadder: function(){
+        if(this.isClimbing && this.hero.y <= this.floorArray[this.currentFloor].y - 40){
+            this.hero.body.gravity.y = gameOptions.playerGravity;
+            this.hero.body.velocity.x = gameOptions.playerSpeed * this.hero.scale.x;
+            this.hero.body.velocity.y = 0;
+            this.isClimbing = false;
+            this.fadeTween.target =  this.ladderArray[this.currentLadder];
+            this.fadeTween.start();
+            this.currentLadder = (this.currentLadder + 1) % this.ladderArray.length;
+        }
+    }
+}
+
+
+//ver1 dùng p2 physics
+/*
+// before camera render (mostly for debug)
+var render = function(){}
+
+
 var Nakama = {};
-var jumpTimer = 0;
-var cursors;
-var jumpButton;
 Nakama.configs = {};
 
 window.onload = function(){
@@ -51,7 +231,6 @@ var create = function(){
   player.animations.add('right', [5, 6, 7, 8], 10, true);
   //cursors
   cursors = Nakama.game.input.keyboard.createCursorKeys();
-  jumpButton = Nakama.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
   //contactMaterials
   var spriteMaterial = Nakama.game.physics.p2.createMaterial('spriteMaterial', player.body);
@@ -76,146 +255,28 @@ var create = function(){
     ledge.body.static = true;
     ledge.body.setMaterial(platformMaterial);
   }
+  var test = Nakama.game.add.sprite(400, 50, 'ground');
+  //ledge.scale.setTo(1.5, 1);
+  test.anchor.setTo(0.5, 0.5);
+  test.rotation = 10;
+  Nakama.game.physics.p2.enable(test);
+  test.body.static = true;
+  test.body.setMaterial(platformMaterial);
 
   //collide
   var worldPlayerCM = Nakama.game.physics.p2.createContactMaterial(spriteMaterial, worldMaterial, { friction: 0.0 });
-  var platformsPlayerCM = Nakama.game.physics.p2.createContactMaterial(worldMaterial, platformMaterial, { friction: 0.0 });
+  var platformWorldCM = Nakama.game.physics.p2.createContactMaterial(worldMaterial, platformMaterial, { friction: 0.0 });
+  var playerPlatformCM = Nakama.game.physics.p2.createContactMaterial(spriteMaterial, platformMaterial, { friction: 0.0 });
 
 }
 
 // update game state each frame
 var update = function(){
 
-  //playerMovement
-  if(cursors.left.isDown){
-    player.body.moveLeft(150);
-    player.animations.play('left');
-  }
-  else if(cursors.right.isDown){
-    player.body.moveRight(150);
-    player.animations.play('right');
-  }
-  else {
-    player.body.velocity.x = 0;
-    player.animations.stop();
-    player.frame = 4;
-  }
-  if (jumpButton.isDown && Nakama.game.time.now > jumpTimer && checkIfCanJump()){
-        player.body.moveUp(150);
-        jumpTimer = Nakama.game.time.now + 750;
-  }
 }
 
-var checkIfCanJump = function(){
 
-    var yAxis = p2.vec2.fromValues(0, 1);
-    var result = false;
-
-    for (var i = 0; i < Nakama.game.physics.p2.world.narrowphase.contactEquations.length; i++)
-    {
-        var c = Nakama.game.physics.p2.world.narrowphase.contactEquations[i];
-
-        if (c.bodyA === player.body.data || c.bodyB === player.body.data)
-        {
-            var d = p2.vec2.dot(c.normalA, yAxis); // Normal dot Y-axis
-            if (c.bodyA === player.body.data) d *= -1;
-            if (d > 0.5) result = true;
-        }
-    }
-
-    return result;
-
-}
 
 // before camera render (mostly for debug)
 var render = function(){}
-
-
-//test đá rơi của a Quang
-/*
-window.onload = function(){
-  game = new Phaser.Game(1280,960,Phaser.AUTO,'',
-    {
-      preload: preload,
-      create: create,
-      update: update,
-      render: render
-    }, false, false
-  );
-}
-
-// preparations before game starts
-var preload = function(){
-  game.scale.minWidth = 640;
-  game.scale.minHeight = 480;
-  game.scale.maxWidth = 1280;
-  game.scale.maxHeight = 960;
-  game.scale.pageAlignHorizontally = true;
-  game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-
-  game.time.advancedTiming = true;
-
-  game.load.image('asteroid2', 'Assets/asteroid2.png');
-  game.load.image('background', 'Assets/starfield.jpg');
-  game.load.physics('physicsData', 'Assets/sprites.json');
-}
-
-var asteroid;
-var timeSinceLastFire = 0;
-var asGroup = [];
-function create() {
-
-    //  Enable p2 physics
-    game.physics.startSystem(Phaser.Physics.P2JS);
-
-    game.physics.p2.restitution = 0;
-
-    background = game.add.tileSprite(0, 0, 1280, 960, 'background');
-
-    game.physics.p2.gravity.y = 1000;
-    asteroid = game.add.physicsGroup(Phaser.Physics.P2JS);
-    cursors = game.input.keyboard.createCursorKeys();
-}
-
-function update() {
-  background.tilePosition.y += 1;
-  timeSinceLastFire += game.time.physicsElapsed;
-  if (cursors.down.isDown && timeSinceLastFire>0.3)
-    {
-      var ball = asteroid.create(game.rnd.between(320,960), 100, 'asteroid2');
-      ball.body.velocity.x = ((game.rnd.between(0, 20)-10)*100);
-
-      ball.body.clearShapes();
-
-      ball.body.loadPolygon('physicsData', 'asteroid2');
-
-      timeSinceLastFire = 0;
-      asGroup.push(ball);
-      //ball.body.onBeginContact.add(hit, this);
-    }
-    if(asGroup.length>0 && timeSinceLastFire>0.8){
-      for(var i=0; i<asGroup.length; i++){
-        if(asGroup[i].body.velocity.x<10
-          && asGroup[i].body.velocity.x>-10
-          && asGroup[i].body.velocity.x!=10
-          && asGroup[i].body.velocity.y<10
-          && asGroup[i].body.velocity.y>-10
-          && asGroup[i].body.velocity.y!=0){
-          asGroup[i].body.setZeroVelocity();
-          asGroup[i].body.static=true;
-          asGroup[i].body.setZeroRotation();
-        }
-      }
-      timeSinceLastFire = 0;
-    }
-}
-
-function hit(body, bodyB, shapeA, shapeB, equation) {
-  equation[0].bodyB.parent.setZeroVelocity();
-  equation[0].bodyB.parent.setZeroRotation();
-  equation[0].bodyB.parent.static=true;
-}
-
-function render() {
-}
 */
