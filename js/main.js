@@ -87,7 +87,6 @@ playGame.prototype = {
       this.defineGroups();
       this.drawLevel();
       this.defineTweens();
-      localStorage.setItem('highscore',55);
     },
     drawLevel: function(){
         this.currentFloor = 0;
