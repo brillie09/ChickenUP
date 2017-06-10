@@ -45,7 +45,7 @@ preloadGame.prototype = {
       game.keyboard = game.input.keyboard;
       button = game.add.button(500, 450, 'button', this.start, this, 2, 1, 0);
       button.anchor.setTo(0.5, 0.5);
-      game.add.sprite(0,950,'instruct');
+      game.add.sprite(0,880,'instruct');
       //howplay = game.add.button(500, 700, 'howplay', this.howtoplay, this, 2, 1, 0);
       //howplay.anchor.setTo(0.5,0.5)
     },
