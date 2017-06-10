@@ -20,6 +20,7 @@ window.onload = function() {
     });
     game.state.add("PreloadGame", preloadGame);
     game.state.add("PlayGame", playGame);
+    game.state.add("GameOver", gameOver);
     game.state.start("PreloadGame");
 }
 
@@ -35,7 +36,7 @@ preloadGame.prototype = {
         game.load.image("hero", 'Assets/OriginalSprites/hero.png');
         game.load.image("pause", 'Assets/OriginalSprites/pausedmenu.jpg');
         game.load.image("ladder", 'Assets/OriginalSprites/ladder.png');
-        game.load.spritesheet('monster', 'Assets/monsters.png');
+        game.load.image('monster', 'Assets/monsters.png');
         game.load.image("banner", 'Assets/OriginalSprites/banner.jpg');
         game.load.image("button", 'Assets/OriginalSprites/button.png');
         game.load.image("background", 'Assets/sky.png');
@@ -46,34 +47,50 @@ preloadGame.prototype = {
       game.keyboard = game.input.keyboard;
       banner = game.add.sprite(500, 525, 'banner');
       banner.anchor.setTo(0.5, 0.5);
-      button = game.add.button(500, 725, 'button', start, this, 2, 1, 0);
+      button = game.add.button(500, 725, 'button', this.start, this, 2, 1, 0);
       button.anchor.setTo(0.5, 0.5);
     },
     update: function(){
       if(game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-        start();
+        this.start();
       }
+    },
+    start: function(){
+      button.visible = false;
+      game.state.start("PlayGame");
     }
 }
-function start(){
-  button.visible = false;
-  game.state.start("PlayGame");
+var gameOver = function(game){}
+gameOver.prototype = {
+  create: function(){
+    pause = game.add.sprite(500, 525, 'pause');
+    var urScore = counter;
+    showscore = game.add.text(500, 100, 'Your score is : ' + urScore, { font: "60px Arial", fill: "#e2041a", align: "center" });
+    restart = game.add.text(500, 180, 'Click anywhere to restart', { font: "40px Arial", fill: "#1d71f7", align: "center" });
+    showscore.anchor.setTo(0.5,0.5);
+    pause.anchor.setTo(0.5, 0.5);
+    restart.anchor.setTo(0.5, 0.5);
+    counter = 0;
+  },
+  update: function(){
+    if (game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) game.state.start("PlayGame");
+    for(var i =0; i <10; i++) console.log(i);
+  }
 }
-
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
-        text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
-        text.anchor.setTo(0, 0);
-        game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
-        this.keyboard = game.input.keyboard;
-        this.canJump = true;
-        this.isClimbing = false;
-        this.defineGroups();
-        this.drawLevel();
-        this.defineTweens();
-        //game.input.onTap.add(this.handleTap, this);
+      text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
+      text.anchor.setTo(0, 0);
+      game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
+      //this.keyboard = game.input.keyboard;
+      this.canJump = true;
+      this.isClimbing = false;
+      this.defineGroups();
+      this.drawLevel();
+      this.defineTweens();
+      //game.input.onTap.add(this.handleTap, this);
     },
     drawLevel: function(){
         this.currentFloor = 0;
@@ -142,11 +159,11 @@ playGame.prototype = {
                 this.hero.scale.x = -1;
             }
             if(down){
-              this.gameOver();
+              game.state.start('GameOver');
             }
         }, this)
     },
-    gameOver: function(){
+    /*gameOver: function(){
       game.paused = true;
       pause = game.add.sprite(500, 525, 'pause');
       var urScore = counter;
@@ -158,7 +175,10 @@ playGame.prototype = {
       game.input.onTap.add(this.startAgain, this);
       counter = 0;
     },
-
+    startAgain: function(pointer, doubleTap){
+      game.paused = false;
+      game.state.start('PlayGame');
+    },*/
     defineGroups: function(){
         this.gameGroup = game.add.group();
         this.floorGroup = game.add.group();
@@ -167,16 +187,6 @@ playGame.prototype = {
         this.gameGroup.add(this.floorGroup);
         this.gameGroup.add(this.ladderGroup);
         this.gameGroup.add(this.monsterGroup);
-    },
-    /*handleTap: function(pointer, doubleTap){
-        if(this.canJump && !this.isClimbing){
-            this.hero.body.velocity.y = -gameOptions.playerJump;
-            this.canJump = false;
-        }
-    },*/
-    startAgain: function(pointer, doubleTap){
-      game.paused = false;
-      game.state.start('PlayGame');
     },
     update: function(){
         this.checkCollision();
@@ -187,15 +197,15 @@ playGame.prototype = {
     },
     updateHero: function(){
       if (!this.isClimbing){
-        if(this.keyboard.isDown(Phaser.Keyboard.UP)){
+        if(game.keyboard.isDown(Phaser.Keyboard.UP)){
           if(this.canJump){
               this.hero.body.velocity.y = -gameOptions.playerJump;
               this.canJump = false;
           }
         }
-        if(this.keyboard.isDown(Phaser.Keyboard.LEFT)){
+        if(game.keyboard.isDown(Phaser.Keyboard.LEFT)){
           this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed-300 : -gameOptions.playerSpeed-200;
-        } else if(this.keyboard.isDown(Phaser.Keyboard.RIGHT)){
+        } else if(game.keyboard.isDown(Phaser.Keyboard.RIGHT)){
           this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed+200 : -gameOptions.playerSpeed+300;
         } else{
           this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed : -gameOptions.playerSpeed;
