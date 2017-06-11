@@ -1,7 +1,7 @@
 //ver3
 var text =0;
 var counter =0;
-var button;
+var button, sounds, soundStopped;
 var game;
 var gameOptions = {
     gameWidth: 1000,
@@ -35,22 +35,34 @@ preloadGame.prototype = {
         game.load.image("gover", 'Assets/gameover.png');
         game.load.image("ladder", 'Assets/ladder.png');
         game.load.spritesheet('monster', 'Assets/monsters.png', 42, 38, 4);
-        game.load.spritesheet("button", 'Assets/playbutton.png', 350, 151, 2);
+        game.load.spritesheet("button1", 'Assets/playbutton.png', 350, 151, 2);
+        game.load.spritesheet("button2", 'Assets/button.png', 230, 110, 2);
         game.load.image("instruct", 'Assets/instruct.png');
         game.load.image("background", 'Assets/sky.png');
         game.load.image("title", 'Assets/title.png');
         game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
+        game.load.audio('menusong', ['Assets/soundfx/menusong.mp3', 'Assets/soundfx/menusong.ogg'])
+        game.load.audio('jump', ['Assets/soundfx/jump.mp3', 'Assets/soundfx/jump.ogg']);
+        game.load.audio('ost', ['Assets/soundfx/ost.mp3', 'Assets/soundfx/ost.ogg']);
+        game.load.audio('dead', ['Assets/soundfx/dead.mp3', 'Assets/soundfx/dead.ogg']);
+
     },
     create: function(){
+      game.physics.startSystem(Phaser.Physics.ARCADE);
+      music = game.add.audio('menusong');
+      jumpfx = game.add.audio('jump');
+      ostfx = game.add.audio('ost');
+      deadfx = game.add.audio('dead');
+      music.play();
+
       background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
-      game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
-      title = game.add.sprite(500, 350, 'title');
+      title = game.add.sprite(500, 520, 'title');
       title.anchor.setTo(0.5, 0.5);
-      game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
-      button = game.add.button(500, 650, 'button', this.start, this, 1, 0, 1);
+      button = game.add.button(660, 450, 'button2', this.start, this, 1, 0, 1);
       button.anchor.setTo(0.5, 0.5);
+      game.add.tween(button.scale).to( { x: 1.1, y: 1.1 }, 250, "Sine.easeInOut", true, 0, -1, true);
       game.add.sprite(0,880,'instruct');
     },
     update: function(){
@@ -59,15 +71,22 @@ preloadGame.prototype = {
         button.frame = 1;
         this.start();
       }
+      /*if(!music.isPlaying){
+        music.restart();
+      }*/
     },
     start: function(){
       button.setFrames(4, 3, 5);
+      music.destroy();
       game.state.start("PlayGame");
     }
 }
 var gameOver = function(game){}
 gameOver.prototype = {
   create: function(){
+    deadfx.play();
+    jumpfx.stop();
+    ostfx.stop();
     background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
     gover = game.add.sprite(0, 400, 'gover');
     showscore = game.add.text(500, 200, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
@@ -88,6 +107,7 @@ gameOver.prototype = {
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
+      ostfx.play();
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#ffffff", align: "center" });
       text.anchor.setTo(0, 0);
@@ -123,7 +143,7 @@ playGame.prototype = {
           aryM = [game.rnd.between(100, 200), game.rnd.between(-200, -100)];
       var randomY = game.rnd.pick(ary),
           randomVecM = game.rnd.pick(aryM);
-      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(200, 458), this.highestFloorY-38, 'monster');
+      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(300, 458), this.highestFloorY-38, 'monster');
       monster.frame = game.rnd.integerInRange(0, 3);
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
@@ -204,11 +224,18 @@ playGame.prototype = {
         this.heroOnLadder();
         this.updateMonster();
         this.updateHero();
+        this.updateMusic();
+    },
+    updateMusic: function(){
+      if(!ostfx.isPlaying){
+        ostfx.restart();
+      }
     },
     updateHero: function(){
       if (!this.isClimbing){
         if(game.keyboard.isDown(Phaser.Keyboard.UP)){
           if(this.canJump){
+              jumpfx.play();
               this.hero.body.velocity.y = -gameOptions.playerJump;
               this.canJump = false;
           }
