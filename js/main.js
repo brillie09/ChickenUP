@@ -48,6 +48,7 @@ preloadGame.prototype = {
         game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
     },
     create: function(){
+<<<<<<< 05886571ef7cb874e0b653c65bbc7a0cd4b85eab
       background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
@@ -72,6 +73,14 @@ preloadGame.prototype = {
     start: function(){
       button.setFrames(4, 3, 5);
       game.state.start("PlayGame");
+=======
+        //game.state.start("PlayGame");
+        //ok
+        banner = game.add.sprite(400, 525, 'banner');
+        banner.anchor.setTo(0.5, 0.5);
+        button = game.add.button(400, 725, 'button', start, this, 2, 1, 0);
+        button.anchor.setTo(0.5, 0.5);
+>>>>>>> e765d3e5e1dcaff9871b870b93c4963f112a487f
     }
 }
 var gameOver = function(game){}
