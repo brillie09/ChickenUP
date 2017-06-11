@@ -32,13 +32,8 @@ preloadGame.prototype = {
         game.scale.pageAlignVertically = true;
         game.stage.disableVisibilityChange = true;
         game.load.image("ground", 'Assets/ground.png');
-        game.load.image("gover", 'Assets/gameover.jpg');
-        game.load.image("ladder", 'Assets/ladder.png');
-        game.load.image('monster', 'Assets/monsters.png');
-        game.load.image("button", 'Assets/playbutton.png');
-        game.load.image("instruct", 'Assets/instruct.png');
-        game.load.image("background", 'Assets/sky.png');
         game.load.image("gover", 'Assets/gameover.png');
+        game.load.image("ladder", 'Assets/ladder.png');
         game.load.image("ladder", 'Assets/ladder.png');
         game.load.spritesheet('monster', 'Assets/monsters.png', 42, 38, 4);
         game.load.spritesheet("button", 'Assets/playbutton.png', 350, 151, 2);
@@ -125,32 +120,27 @@ playGame.prototype = {
         this.addHero();
     },
     addMonster: function(){
-      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY-40, 'monster');
+      var ary = [38, 116],
+          aryM = [game.rnd.between(100, 200), game.rnd.between(-200, -100)];
+      var randomY = game.rnd.pick(ary),
+          randomVecM = game.rnd.pick(aryM);
+      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY-38, 'monster');
+      monster.frame = game.rnd.integerInRange(0, 3);
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
       this.monsterArray.push(monster);
-      monster.body.velocity.x = game.rnd.between(100,200);
-        var ary = [38, 116],
-            aryM = [game.rnd.between(100, 200), game.rnd.between(-200, -100)];
-        var randomY = game.rnd.pick(ary),
-            randomVecM = game.rnd.pick(aryM);
-        var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY-38, 'monster');
-        monster.frame = game.rnd.integerInRange(0, 3);
-        this.monsterGroup.add(monster);
-        game.physics.enable(monster, Phaser.Physics.ARCADE);
-        this.monsterArray.push(monster);
-        monster.body.velocity.x = randomVecM;
-        monster.body.onWorldBounds = new Phaser.Signal();
-        monster.body.onWorldBounds.add(function(sprite, up, down, left, right){
-            if(left){
-                //this.isMovingRight = true;
-                monster.scale.x = 1;
-            }
-            if(right){
-                //this.isMovingRight = false;
-                monster.scale.x = -1;
-            }
-        }, this);
+      monster.body.velocity.x = randomVecM;
+      monster.body.onWorldBounds = new Phaser.Signal();
+      monster.body.onWorldBounds.add(function(sprite, up, down, left, right){
+          if(left){
+              //this.isMovingRight = true;
+              monster.scale.x = 1;
+          }
+          if(right){
+              //this.isMovingRight = false;
+              monster.scale.x = -1;
+          }
+      }, this);
     },
     addFloor: function(){
         var floor = game.add.sprite((game.width / 2)*((this.currentFloor % 2)*2), this.highestFloorY, "ground");
@@ -209,125 +199,7 @@ playGame.prototype = {
         this.gameGroup.add(this.monsterGroup);
     },
     update: function(){
-        game.background.tilePosition.y += 0.2;
-        this.checkCollision();
-        this.checkLadderCollision();
-        this.heroOnLadder();
-        this.updateMonster();
-        this.updateHero();
-    },
-    updateHero: function(){
-      if (!this.isClimbing){
-        if(game.keyboard.isDown(Phaser.Keyboard.UP)){
-          if(this.canJump){
-              this.hero.body.velocity.y = -gameOptions.playerJump;
-              this.canJump = false;
-          }
-        }
-        if(game.keyboard.isDown(Phaser.Keyboard.LEFT)){
-          this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed-300 : -gameOptions.playerSpeed-200;
-        } else if(game.keyboard.isDown(Phaser.Keyboard.RIGHT)){
-          this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed+200 : -gameOptions.playerSpeed+300;
-        } else{
-          this.hero.body.velocity.x = this.isMovingRight ? gameOptions.playerSpeed : -gameOptions.playerSpeed;
-        }
-      }
-    },
-    updateMonster: function(){
-      for(var i = 0; i<this.monsterArray.length;i++){
-        if (i %2 == 1){
-          if(this.monsterArray[i].position.x<550) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
-          if(this.monsterArray[i].position.x>910) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
-        }else{
-          if(this.monsterArray[i].position.x<50) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
-          if(this.monsterArray[i].position.x>410) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
-        }
-      }
-    },
-    checkCollision: function(){
-      //monster collision check
-      game.physics.arcade.collide(this.monsterArray, this.hero, function(){
-        game.state.start('GameOver');
-      }, null, this);
-      //floor collision check
-      game.physics.arcade.collide(this.hero, this.floorArray, function(){
-          this.canJump = true;
-      }, null, this);
-    },
-    checkLadderCollision: function(){
-        game.physics.arcade.overlap(this.hero, this.ladderArray, function(player, ladder){
-            if(!this.isClimbing && Math.abs(player.x - ladder.x) < 10){
-                this.hero.body.velocity.x = 0;
-                this.hero.body.velocity.y = - gameOptions.climbSpeed;
-                this.hero.body.gravity.y = 0;
-                this.isClimbing = true;
-                this.fadeTween.target =  this.floorArray[this.currentFloor];
-                this.currentFloor = (this.currentFloor + 1) % this.floorArray.length;
-                this.fadeTween.start();
-                this.scrollTween.start();
-                this.fadeLadder.target =  this.ladderArray[this.currentLadder];
-                this.fadeLadder.start();
-                this.fadeMonster.target =  this.monsterArray[this.currentMonster];
-                this.fadeMonster.start();
-                this.currentMonster = (this.currentMonster+1) % this.monsterArray.length;
-            }
-        }, null, this);
-    },
-    defineTweens: function(){
-        this.scrollTween = game.add.tween(this.gameGroup).to({
-            y: gameOptions.floorGap
-        }, 800, Phaser.Easing.Cubic.Out);
-        this.scrollTween.onComplete.add(function(){
-                this.gameGroup.y = 0;
-                this.monsterGroup.forEach(function(item) {
-                    item.y += gameOptions.floorGap;
-                }, this);
-                this.floorGroup.forEach(function(item) {
-                    item.y += gameOptions.floorGap;
-                }, this);
-                this.ladderGroup.forEach(function(item) {
-                    item.y += gameOptions.floorGap;
-                }, this);
-                this.hero.y += gameOptions.floorGap;
-                counter++;
-                text.setText('Score: ' + counter);
-        }, this)
-        this.fadeTween = game.add.tween(this.floorArray[0]).to({
-            alpha: 0
-        }, 200, Phaser.Easing.Cubic.Out);
-        this.fadeTween.onComplete.add(function(floor){
-                floor.y = this.highestFloorY;
-                floor.alpha =1;
-        }, this);
-
-        this.fadeLadder = game.add.tween(this.ladderArray[0]).to({
-            alpha: 0
-        }, 200, Phaser.Easing.Cubic.Out);
-        this.fadeLadder.onComplete.add(function(ladder){
-                ladder.y = this.highestFloorY;
-                ladder.alpha =1;
-        }, this);
-
-        this.fadeMonster = game.add.tween(this.monsterArray[0]).to({
-            alpha: 0
-        }, 200, Phaser.Easing.Cubic.Out);
-        this.fadeMonster.onComplete.add(function(monster){
-                monster.y = this.highestFloorY-40;
-                monster.alpha =1;
-        }, this);
-    },
-
-    defineGroups: function(){
-        this.gameGroup = game.add.group();
-        this.floorGroup = game.add.group();
-        this.ladderGroup = game.add.group();
-        this.monsterGroup = game.add.group();
-        this.gameGroup.add(this.floorGroup);
-        this.gameGroup.add(this.ladderGroup);
-        this.gameGroup.add(this.monsterGroup);
-    },
-    update: function(){
-        game.background.tilePosition.y += 0.2;
+        game.background.tilePosition.y += 1;
         this.checkCollision();
         this.checkLadderCollision();
         this.heroOnLadder();
@@ -433,7 +305,6 @@ playGame.prototype = {
                 monster.y = this.highestFloorY-40;
                 monster.alpha =1;
         }, this);
-
     },
     heroOnLadder: function(){
         if(this.isClimbing && this.hero.y <= this.floorArray[this.currentFloor].y - 58){
