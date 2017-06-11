@@ -1,4 +1,4 @@
-//ver3 
+//ver3
 var text =0;
 var counter =0;
 var button;
@@ -51,7 +51,6 @@ preloadGame.prototype = {
       background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       game.physics.startSystem(Phaser.Physics.ARCADE);
       game.keyboard = game.input.keyboard;
-      button = game.add.button(500, 450, 'button', this.start, this, 2, 1, 0);
       title = game.add.sprite(500, 350, 'title');
       title.anchor.setTo(0.5, 0.5);
       game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -59,8 +58,6 @@ preloadGame.prototype = {
       button = game.add.button(500, 650, 'button', this.start, this, 1, 0, 1);
       button.anchor.setTo(0.5, 0.5);
       game.add.sprite(0,880,'instruct');
-      //howplay = game.add.button(500, 700, 'howplay', this.howtoplay, this, 2, 1, 0);
-      //howplay.anchor.setTo(0.5,0.5)
     },
     update: function(){
       background.tilePosition.y += 1;
