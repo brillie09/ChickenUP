@@ -89,7 +89,7 @@ var playGame = function(game){}
 playGame.prototype = {
     create: function(){
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
-      text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#000", align: "center" });
+      text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#ffffff", align: "center" });
       text.anchor.setTo(0, 0);
       this.canJump = true;
       this.isClimbing = false;
@@ -123,7 +123,7 @@ playGame.prototype = {
           aryM = [game.rnd.between(100, 200), game.rnd.between(-200, -100)];
       var randomY = game.rnd.pick(ary),
           randomVecM = game.rnd.pick(aryM);
-      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2), this.highestFloorY-38, 'monster');
+      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(200, 458), this.highestFloorY-38, 'monster');
       monster.frame = game.rnd.integerInRange(0, 3);
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
@@ -160,7 +160,7 @@ playGame.prototype = {
         this.ladderArray.push(ladder);
     },
     addHero: function(){
-        this.hero = game.add.sprite(60 , game.height * gameOptions.floorStart - 174, "hero");
+        this.hero = game.add.sprite(5 , game.height * gameOptions.floorStart - 100, "hero");
         this.hero.animations.add('run', [0,1,2,3], 10, true);
         this.hero.animations.play('run');
         this.gameGroup.add(this.hero)
