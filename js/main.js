@@ -34,7 +34,6 @@ preloadGame.prototype = {
         game.load.image("ground", 'Assets/ground.png');
         game.load.image("gover", 'Assets/gameover.png');
         game.load.image("ladder", 'Assets/ladder.png');
-        game.load.image("ladder", 'Assets/ladder.png');
         game.load.spritesheet('monster', 'Assets/monsters.png', 42, 38, 4);
         game.load.spritesheet("button", 'Assets/playbutton.png', 350, 151, 2);
         game.load.image("instruct", 'Assets/instruct.png');
