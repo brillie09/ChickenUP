@@ -1,4 +1,4 @@
-//ver2 dùng arcade physics
+//ver3 
 var text =0;
 var counter =0;
 var button;
