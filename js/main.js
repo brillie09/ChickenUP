@@ -155,7 +155,8 @@ playGame.prototype = {
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
       this.monsterArray.push(monster);
-      monster.body.velocity.x = randomVecM;
+      monster.body.velocity.x = gameOptions.monsterSpeed;
+      monster.scale.x = 1;
       /*monster.body.onWorldBounds = new Phaser.Signal();
       monster.body.onWorldBounds.add(function(sprite, up, down, left, right){
           if(left){
