@@ -1,7 +1,7 @@
 //ver3
 var text =0;
 var counter =0;
-var button, sounds, soundStopped;
+var savedData;
 var game;
 var gameOptions = {
     gameWidth: 1000,
@@ -13,7 +13,8 @@ var gameOptions = {
     monsterSpeed: 120,
     climbSpeed: 450,
     playerJump: 900,
-    timeAddMonster: 10
+    timeAddMonster: 10,
+    localStorageName: "ChickenUP"
 }
 window.onload = function() {
     game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight,{
@@ -94,15 +95,21 @@ gameOver.prototype = {
     gover = game.add.sprite(0, 250, 'gover');
     again = game.add.sprite(0, 700, 'restart');
     showscore = game.add.text(500, 450, 'SCORE\n' + counter, { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+    showscore.anchor.setTo(0.5,0.5);
     showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
-    if(localStorage.getItem('highscore')<counter)
+    /*if(localStorage.getItem('highscore')<counter)
     localStorage.setItem('highscore',counter);
     if(localStorage.getItem('highscore')==null)
-    localStorage.setItem('highscore',0);
-    highscore = game.add.text(500,600, 'BEST\n' + localStorage.getItem('highscore'), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+    localStorage.setItem('highscore',0);*/
+
+    savedData = localStorage.getItem(gameOptions.localStorageName) == null ? {counter : 0} : JSON.parse(localStorage.getItem(gameOptions.localStorageName));
+    highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+    highScoreText.anchor.setTo(0.5,0.5);
+    highScoreText.setShadow(2, 2, "#5C5C5C", 2, true, false);
+
+    /*highscore = game.add.text(500,600, 'BEST\n' + localStorage.getItem('highscore'), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
     highscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
-    showscore.anchor.setTo(0.5,0.5);
-    highscore.anchor.setTo(0.5,0.5);
+    highscore.anchor.setTo(0.5,0.5);*/
     counter = 0;
   },
   update: function(){
@@ -113,6 +120,7 @@ gameOver.prototype = {
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
+
       ostfx.play();
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       this.canJump = true;
@@ -126,7 +134,6 @@ playGame.prototype = {
     },
     drawLevel: function(){
         this.currentFloor = 0;
-        this.temp = 0;
         this.currentLadder = 0;
         this.currentMonster = 0;
         this.currentMonster_2 = 0;
@@ -140,15 +147,15 @@ playGame.prototype = {
                 this.addFloor();
                 if(this.currentFloor >= 0){
                   this.addLadder(this.highestFloorY);
-                  if(this.temp <= gameOptions.timeAddMonster){
-                    this.addMonster();
-                  } else{
-                    this.addMonster_2();
-                  }
+                  this.addMonster();
                 }
+                /*if(counter < gameOptions.timeAddMonster){
+                  this.addMonster();
+                } else{
+                  this.addMonster_2();
+                }*/
                 this.highestFloorY -= gameOptions.floorGap;
                 this.currentFloor ++;
-                this.temp++;
         }
         this.currentFloor = 0;
         this.addHero();
@@ -253,7 +260,7 @@ playGame.prototype = {
     update: function(){
         game.background.tilePosition.y += 1;
         this.checkCollision();
-        if(counter <= gameOptions.timeAddMonster){
+        if(counter < gameOptions.timeAddMonster){
           this.checkLadderCollision();
         } else {
           this.checkLadder_2Collision();
@@ -424,6 +431,9 @@ playGame.prototype = {
                 floor.alpha =1;
                 counter++;
                 text.setText(counter);
+                localStorage.setItem(gameOptions.localStorageName,JSON.stringify({
+                        counter: Math.max(counter, savedData.counter)
+                 }));
         }, this);
 
         this.fadeLadder = game.add.tween(this.ladderArray[0]).to({
