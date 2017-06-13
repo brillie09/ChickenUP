@@ -101,10 +101,9 @@ gameOver.prototype = {
     localStorage.setItem('highscore',counter);
     if(localStorage.getItem('highscore')==null)
     localStorage.setItem('highscore',0);*/
-
-    localStorage.setItem(gameOptions.localStorageName,JSON.stringify({
-            counter: Math.max(counter, savedData.counter)
-     }));
+    if(counter > savedData.counter){
+      savedData.counter = counter;
+    }
     highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
     highScoreText.anchor.setTo(0.5,0.5);
     highScoreText.setShadow(2, 2, "#5C5C5C", 2, true, false);
@@ -122,7 +121,7 @@ gameOver.prototype = {
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
-      savedData = localStorage.getItem(gameOptions.localStorageName) == null ? {counter : 0} : JSON.parse(localStorage.getItem(gameOptions.localStorageName));
+      savedData = localStorage.getItem(gameOptions.localStorageName) == null ? {counter : 10} : JSON.parse(localStorage.getItem(gameOptions.localStorageName));
       ostfx.play();
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       this.canJump = true;
