@@ -11,9 +11,10 @@ var gameOptions = {
     playerGravity: 4500,
     playerSpeed: 420,
     monsterSpeed: 120,
+    monster_2Speed: 110,
     climbSpeed: 450,
     playerJump: 900,
-    timeAddMonster: 10,
+    timeAddMonster: 2,
     localStorageName: "ChickenUP"
 }
 window.onload = function() {
@@ -149,12 +150,12 @@ playGame.prototype = {
                 if(this.currentFloor >= 0){
                   this.addLadder(this.highestFloorY);
                   this.addMonster();
+                  randomAry = [3,4,5,6];
+                  randomM2 = game.rnd.pick(randomAry);
+                  if(this.currentFloor == randomM2){
+                    this.addMonster_2();
+                  }
                 }
-                /*if(counter < gameOptions.timeAddMonster){
-                  this.addMonster();
-                } else{
-                  this.addMonster_2();
-                }*/
                 this.highestFloorY -= gameOptions.floorGap;
                 this.currentFloor ++;
         }
@@ -189,15 +190,16 @@ playGame.prototype = {
     addMonster_2: function(){
       var aryM = [gameOptions.monsterSpeed*(-1), gameOptions.monsterSpeed];
       var randomY = game.rnd.between(76, 116),
-          randomVecM = game.rnd.pick(aryM);
-      var monster_2 = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(42, 458), this.highestFloorY-randomY, 'monster');
+          randomVecM = game.rnd.pick(aryM),
+          randomX = game.rnd.between(42, 958);
+      var monster_2 = game.add.sprite(randomX , this.highestFloorY+76, 'monster');
       monster_2.frame = 3
       monster_2.anchor.setTo(0.5, 0);
       this.monster_2Group.add(monster_2);
       game.physics.enable(monster_2, Phaser.Physics.ARCADE);
       this.monster_2Array.push(monster_2);
-      monster_2.body.velocity.x = gameOptions.monsterSpeed;
-      monster_2.body.velocity.y = randomVecM;
+      monster_2.body.velocity.x = gameOptions.monster_2Speed;
+      //monster_2.body.velocity.y = randomVecM;
       monster_2.scale.x = 1;
     },
     addFloor: function(){
@@ -248,6 +250,7 @@ playGame.prototype = {
     },
 
     defineGroups: function(){
+
         this.gameGroup = game.add.group();
         this.floorGroup = game.add.group();
         this.ladderGroup = game.add.group();
@@ -261,11 +264,8 @@ playGame.prototype = {
     update: function(){
         game.background.tilePosition.y += 1;
         this.checkCollision();
-        if(counter < gameOptions.timeAddMonster){
-          this.checkLadderCollision();
-        } else {
-          this.checkLadder_2Collision();
-        }
+        this.checkLadderCollision();
+        this.checkLadder_2Collision();
         this.heroOnLadder();
         this.updateMonster();
         this.updateMonster_2();
@@ -321,7 +321,7 @@ playGame.prototype = {
     updateMonster_2: function(){
       for(var n = 0; n<this.monster_2Array.length;n++){
         if (n %2 == 1){
-          if(this.monster_2Array[n].position.x<521){
+          if(this.monster_2Array[n].position.x<42){
             this.monster_2Array[n].body.velocity.x=gameOptions.monsterSpeed;
             this.monster_2Array[n].scale.x = 1;
           }
@@ -329,27 +329,27 @@ playGame.prototype = {
             this.monster_2Array[n].body.velocity.x=-gameOptions.monsterSpeed;
             this.monster_2Array[n].scale.x = -1;
           }
-          if(this.monster_2Array[n].position.y<this.highestFloorY-76){
+          /*if(this.monster_2Array[n].position.y<this.highestFloorY-76){
             this.monster_2Array[n].body.velocity.y=-gameOptions.monsterSpeed;
           }
           if(this.monster_2Array[n].position.y>this.highestFloorY-96){
             this.monster_2Array[n].body.velocity.y=gameOptions.monsterSpeed;
-          }
+          }*/
         }else{
           if(this.monster_2Array[n].position.x<42){
             this.monster_2Array[n].body.velocity.x=gameOptions.monsterSpeed;
             this.monster_2Array[n].scale.x = 1;
           }
-          if(this.monster_2Array[n].position.x>458){
+          if(this.monster_2Array[n].position.x>958){
             this.monster_2Array[n].body.velocity.x=-gameOptions.monsterSpeed;
             this.monster_2Array[n].scale.x = -1;
           }
-          if(this.monster_2Array[n].position.y<this.highestFloorY-76){
+          /*if(this.monster_2Array[n].position.y<this.highestFloorY-76){
             this.monster_2Array[n].body.velocity.y=-gameOptions.monsterSpeed;
           }
           if(this.monster_2Array[n].position.y>this.highestFloorY-96){
             this.monster_2Array[n].body.velocity.y=gameOptions.monsterSpeed;
-          }
+          }*/
         }
       }
     },
@@ -382,6 +382,9 @@ playGame.prototype = {
                 this.fadeMonster.target =  this.monsterArray[this.currentMonster];
                 this.fadeMonster.start();
                 this.currentMonster = (this.currentMonster+1) % this.monsterArray.length;
+                //this.fadeMonster_2.target =  this.monster_2Array[this.currentMonster_2];
+                //this.fadeMonster_2.start();
+                //this.currentMonster_2 = (this.currentMonster_2+1) % this.monster_2Array.length;
             }
         }, null, this);
     },
