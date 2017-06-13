@@ -87,7 +87,6 @@ preloadGame.prototype = {
 var gameOver = function(game){}
 gameOver.prototype = {
   create: function(){
-    deadfx.play();
     jumpfx.stop();
     ostfx.stop();
     background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
@@ -371,6 +370,7 @@ playGame.prototype = {
       game.physics.arcade.overlap(this.monsterArray, this.hero, function(){
         //game.state.start('GameOver');
         this.gameOverStt = true;
+        deadfx.play();
         this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
         this.hero.body.velocity.y = -gameOptions.playerJump-600;
         this.hero.body.gravity.y = gameOptions.playerGravity;
