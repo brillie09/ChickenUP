@@ -151,21 +151,22 @@ playGame.prototype = {
           randomVecM = game.rnd.pick(aryM);
       var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(400, 458), this.highestFloorY-38, 'monster');
       monster.frame = game.rnd.integerInRange(0, 3);
+      monster.anchor.setTo(0.5, 0);
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
       this.monsterArray.push(monster);
       monster.body.velocity.x = randomVecM;
-      monster.body.onWorldBounds = new Phaser.Signal();
+      /*monster.body.onWorldBounds = new Phaser.Signal();
       monster.body.onWorldBounds.add(function(sprite, up, down, left, right){
           if(left){
-              this.isMovingRight = true;
+              //this.isMovingRight = true;
               monster.scale.x = 1;
           }
           if(right){
-              this.isMovingRight = false;
+              //this.isMovingRight = false;
               monster.scale.x = -1;
           }
-      }, this);
+      }, this);*/
     },
     addFloor: function(){
         var floor = game.add.sprite((game.width / 2)*((this.currentFloor % 2)*2), this.highestFloorY, "ground");
@@ -258,11 +259,23 @@ playGame.prototype = {
     updateMonster: function(){
       for(var i = 0; i<this.monsterArray.length;i++){
         if (i %2 == 1){
-          if(this.monsterArray[i].position.x<500) this.monsterArray[i].body.velocity.x=gameOptions.monsterSpeed;
-          if(this.monsterArray[i].position.x>958) this.monsterArray[i].body.velocity.x=-gameOptions.monsterSpeed;
+          if(this.monsterArray[i].position.x<521){
+            this.monsterArray[i].body.velocity.x=gameOptions.monsterSpeed;
+            this.monsterArray[i].scale.x = 1;
+          }
+          if(this.monsterArray[i].position.x>958){
+            this.monsterArray[i].body.velocity.x=-gameOptions.monsterSpeed;
+            this.monsterArray[i].scale.x = -1;
+          }
         }else{
-          if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=gameOptions.monsterSpeed;
-          if(this.monsterArray[i].position.x>458) this.monsterArray[i].body.velocity.x=-gameOptions.monsterSpeed;
+          if(this.monsterArray[i].position.x<42){
+            this.monsterArray[i].body.velocity.x=gameOptions.monsterSpeed;
+            this.monsterArray[i].scale.x = 1;
+          }
+          if(this.monsterArray[i].position.x>458){
+            this.monsterArray[i].body.velocity.x=-gameOptions.monsterSpeed;
+            this.monsterArray[i].scale.x = -1;
+          }
         }
       }
     },
