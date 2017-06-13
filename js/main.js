@@ -13,6 +13,7 @@ var gameOptions = {
     monsterSpeed: 120,
     climbSpeed: 450,
     playerJump: 900,
+    timeAddMonster: 4
 }
 window.onload = function() {
     game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight,{
@@ -125,21 +126,29 @@ playGame.prototype = {
     },
     drawLevel: function(){
         this.currentFloor = 0;
+        this.temp = 0;
         this.currentLadder = 0;
         this.currentMonster = 0;
+        this.currentMonster_2 = 0;
         this.highestFloorY = game.height * gameOptions.floorStart;
         this.floorArray = [];
         this.ladderArray = [];
         this.monsterArray = [];
+        this.monster_2Array = [];
         this.isMovingRight = true;
         while(this.highestFloorY > - 3 * gameOptions.floorGap){
                 this.addFloor();
                 if(this.currentFloor >= 0){
                   this.addLadder(this.highestFloorY);
-                  this.addMonster();
+                  if(this.temp <= gameOptions.timeAddMonster){
+                    this.addMonster();
+                  } else{
+                    this.addMonster_2();
+                  }
                 }
                 this.highestFloorY -= gameOptions.floorGap;
                 this.currentFloor ++;
+                this.temp++;
         }
         this.currentFloor = 0;
         this.addHero();
@@ -150,7 +159,7 @@ playGame.prototype = {
       var randomY = game.rnd.pick(ary),
           randomVecM = game.rnd.pick(aryM);
       var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(400, 458), this.highestFloorY-38, 'monster');
-      monster.frame = game.rnd.integerInRange(0, 3);
+      monster.frame = game.rnd.integerInRange(0, 2);
       monster.anchor.setTo(0.5, 0);
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
@@ -168,6 +177,20 @@ playGame.prototype = {
               monster.scale.x = -1;
           }
       }, this);*/
+    },
+    addMonster_2: function(){
+      var aryM = [gameOptions.monsterSpeed*(-1), gameOptions.monsterSpeed];
+      var randomY = game.rnd.between(76, 116),
+          randomVecM = game.rnd.pick(aryM);
+      var monster_2 = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(42, 458), this.highestFloorY-randomY, 'monster');
+      monster_2.frame = 3
+      monster_2.anchor.setTo(0.5, 0);
+      this.monster_2Group.add(monster_2);
+      game.physics.enable(monster_2, Phaser.Physics.ARCADE);
+      this.monster_2Array.push(monster_2);
+      monster_2.body.velocity.x = gameOptions.monsterSpeed;
+      monster_2.body.velocity.y = randomVecM;
+      monster_2.scale.x = 1;
     },
     addFloor: function(){
         var floor = game.add.sprite((game.width / 2)*((this.currentFloor % 2)*2), this.highestFloorY, "ground");
@@ -221,16 +244,23 @@ playGame.prototype = {
         this.floorGroup = game.add.group();
         this.ladderGroup = game.add.group();
         this.monsterGroup = game.add.group();
+        this.monster_2Group = game.add.group();
         this.gameGroup.add(this.floorGroup);
         this.gameGroup.add(this.ladderGroup);
         this.gameGroup.add(this.monsterGroup);
+        this.gameGroup.add(this.monster_2Group);
     },
     update: function(){
         game.background.tilePosition.y += 1;
         this.checkCollision();
-        this.checkLadderCollision();
+        if(counter <= gameOptions.timeAddMonster){
+          this.checkLadderCollision();
+        } else {
+          this.checkLadder_2Collision();
+        }
         this.heroOnLadder();
         this.updateMonster();
+        this.updateMonster_2();
         this.updateHero();
         this.updateMusic();
     },
@@ -280,9 +310,47 @@ playGame.prototype = {
         }
       }
     },
+    updateMonster_2: function(){
+      for(var n = 0; n<this.monster_2Array.length;n++){
+        if (n %2 == 1){
+          if(this.monster_2Array[n].position.x<521){
+            this.monster_2Array[n].body.velocity.x=gameOptions.monsterSpeed;
+            this.monster_2Array[n].scale.x = 1;
+          }
+          if(this.monster_2Array[n].position.x>958){
+            this.monster_2Array[n].body.velocity.x=-gameOptions.monsterSpeed;
+            this.monster_2Array[n].scale.x = -1;
+          }
+          if(this.monster_2Array[n].position.y<this.highestFloorY-76){
+            this.monster_2Array[n].body.velocity.y=-gameOptions.monsterSpeed;
+          }
+          if(this.monster_2Array[n].position.y>this.highestFloorY-96){
+            this.monster_2Array[n].body.velocity.y=gameOptions.monsterSpeed;
+          }
+        }else{
+          if(this.monster_2Array[n].position.x<42){
+            this.monster_2Array[n].body.velocity.x=gameOptions.monsterSpeed;
+            this.monster_2Array[n].scale.x = 1;
+          }
+          if(this.monster_2Array[n].position.x>458){
+            this.monster_2Array[n].body.velocity.x=-gameOptions.monsterSpeed;
+            this.monster_2Array[n].scale.x = -1;
+          }
+          if(this.monster_2Array[n].position.y<this.highestFloorY-76){
+            this.monster_2Array[n].body.velocity.y=-gameOptions.monsterSpeed;
+          }
+          if(this.monster_2Array[n].position.y>this.highestFloorY-96){
+            this.monster_2Array[n].body.velocity.y=gameOptions.monsterSpeed;
+          }
+        }
+      }
+    },
     checkCollision: function(){
       //monster collision check
       game.physics.arcade.collide(this.monsterArray, this.hero, function(){
+        game.state.start('GameOver');
+      }, null, this);
+      game.physics.arcade.collide(this.monster_2Array, this.hero, function(){
         game.state.start('GameOver');
       }, null, this);
       //floor collision check
@@ -309,6 +377,25 @@ playGame.prototype = {
             }
         }, null, this);
     },
+    checkLadder_2Collision: function(){
+        game.physics.arcade.overlap(this.hero, this.ladderArray, function(player, ladder){
+            if(!this.isClimbing && Math.abs(player.x - ladder.x) < 10){
+                this.hero.body.velocity.x = 0;
+                this.hero.body.velocity.y = - gameOptions.climbSpeed;
+                this.hero.body.gravity.y = 0;
+                this.isClimbing = true;
+                this.fadeTween.target =  this.floorArray[this.currentFloor];
+                this.currentFloor = (this.currentFloor + 1) % this.floorArray.length;
+                this.fadeTween.start();
+                this.scrollTween.start();
+                this.fadeLadder.target =  this.ladderArray[this.currentLadder];
+                this.fadeLadder.start();
+                this.fadeMonster_2.target =  this.monster_2Array[this.currentMonster_2];
+                this.fadeMonster_2.start();
+                this.currentMonster_2 = (this.currentMonster_2+1) % this.monster_2Array.length;
+            }
+        }, null, this);
+    },
     defineTweens: function(){
         this.scrollTween = game.add.tween(this.gameGroup).to({
             y: gameOptions.floorGap
@@ -316,6 +403,9 @@ playGame.prototype = {
         this.scrollTween.onComplete.add(function(){
                 this.gameGroup.y = 0;
                 this.monsterGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.monster_2Group.forEach(function(item) {
                     item.y += gameOptions.floorGap;
                 }, this);
                 this.floorGroup.forEach(function(item) {
@@ -350,6 +440,14 @@ playGame.prototype = {
         this.fadeMonster.onComplete.add(function(monster){
                 monster.y = this.highestFloorY-40;
                 monster.alpha =1;
+        }, this);
+
+        this.fadeMonster_2 = game.add.tween(this.monster_2Array[0]).to({
+            alpha: 0
+        }, 200, Phaser.Easing.Cubic.Out);
+        this.fadeMonster_2.onComplete.add(function(monster_2){
+                monster_2.y = this.highestFloorY-40;
+                monster_2.alpha =1;
         }, this);
     },
     heroOnLadder: function(){
