@@ -13,7 +13,7 @@ var gameOptions = {
     monsterSpeed: 120,
     climbSpeed: 450,
     playerJump: 900,
-    timeAddMonster: 4
+    timeAddMonster: 10
 }
 window.onload = function() {
     game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight,{
