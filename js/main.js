@@ -18,9 +18,7 @@ var gameOptions = {
     localStorageName: "ChickenUP"
 }
 window.onload = function() {
-    game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight,{
-      render : render
-    });
+    game = new Phaser.Game(gameOptions.gameWidth, gameOptions.gameHeight);
     game.state.add("PreloadGame", preloadGame);
     game.state.add("PlayGame", playGame);
     game.state.add("GameOver", gameOver);
@@ -95,34 +93,47 @@ gameOver.prototype = {
     background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
     gover = game.add.sprite(0, 250, 'gover');
     again = game.add.sprite(0, 700, 'restart');
-    showscore = game.add.text(500, 450, 'SCORE\n' + counter, { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+    /*showscore = game.add.text(500, 450, 'SCORE\n' + counter, { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
     showscore.anchor.setTo(0.5,0.5);
-    showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
-    /*if(localStorage.getItem('highscore')<counter)
-    localStorage.setItem('highscore',counter);
-    if(localStorage.getItem('highscore')==null)
-    localStorage.setItem('highscore',0);*/
-    if(counter > savedData.counter){
-      savedData.counter = counter;
-    }
-    highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
-    highScoreText.anchor.setTo(0.5,0.5);
-    highScoreText.setShadow(2, 2, "#5C5C5C", 2, true, false);
+    showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);*/
 
+    if(counter > savedData.counter){
+      //savedData.counter = counter;
+      showscore = game.add.text(500, 520, 'NEW CHICKEN BEST\n' + counter, { font: "50px Arial", fill: "#FFF90F", stroke: "#0000000", strokeThickness: 6, align: "center" });
+      showscore.anchor.setTo(0.5,0.5);
+      showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
+      game.add.tween(showscore.scale).to( { x: 1.1, y: 1.1 }, 250, "Sine.easeInOut", true, 0, -1, true);
+
+      /*highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+      highScoreText.anchor.setTo(0.5,0.5);
+      highScoreText.setShadow(2, 2, "#5C5C5C", 2, true, false);*/
+
+    } else{
+      showscore = game.add.text(500, 450, 'SCORE\n' + counter, { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+      showscore.anchor.setTo(0.5,0.5);
+      showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
+      highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+      highScoreText.anchor.setTo(0.5,0.5);
+      highScoreText.setShadow(2, 2, "#5C5C5C", 2, true, false);
+    }
     /*highscore = game.add.text(500,600, 'BEST\n' + localStorage.getItem('highscore'), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
     highscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
     highscore.anchor.setTo(0.5,0.5);*/
-    counter = 0;
+    //counter = 0;
   },
   update: function(){
     background.tilePosition.y += 1;
-    if (game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) game.state.start("PlayGame");
+    if (game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+      counter = 0;
+      game.state.start("PlayGame");
+    }
   }
 }
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
       savedData = localStorage.getItem(gameOptions.localStorageName) == null ? {counter : 0} : JSON.parse(localStorage.getItem(gameOptions.localStorageName));
+      this.gameOverStt = false;
       ostfx.play();
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       this.canJump = true;
@@ -263,14 +274,16 @@ playGame.prototype = {
     },
     update: function(){
         game.background.tilePosition.y += 1;
-        this.checkCollision();
-        this.checkLadderCollision();
-        this.checkLadder_2Collision();
-        this.heroOnLadder();
-        this.updateMonster();
-        this.updateMonster_2();
-        this.updateHero();
-        this.updateMusic();
+        if(!this.gameOverStt){
+          this.checkCollision();
+          this.checkLadderCollision();
+          this.checkLadder_2Collision();
+          this.heroOnLadder();
+          this.updateMonster();
+          this.updateMonster_2();
+          this.updateHero();
+          this.updateMusic();
+        }
     },
     updateMusic: function(){
       if(!ostfx.isPlaying){
@@ -278,7 +291,7 @@ playGame.prototype = {
       }
     },
     updateHero: function(){
-      if (!this.isClimbing){
+      if (!this.isClimbing && !this.gameOverStt){
         if(game.keyboard.isDown(Phaser.Keyboard.UP)){
           if(this.canJump){
               jumpfx.play();
@@ -355,11 +368,19 @@ playGame.prototype = {
     },
     checkCollision: function(){
       //monster collision check
-      game.physics.arcade.collide(this.monsterArray, this.hero, function(){
-        game.state.start('GameOver');
+      game.physics.arcade.overlap(this.monsterArray, this.hero, function(){
+        //game.state.start('GameOver');
+        this.gameOverStt = true;
+        this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
+        this.hero.body.velocity.y = -gameOptions.playerJump-600;
+        this.hero.body.gravity.y = gameOptions.playerGravity;
       }, null, this);
-      game.physics.arcade.collide(this.monster_2Array, this.hero, function(){
-        game.state.start('GameOver');
+      game.physics.arcade.overlap(this.monster_2Array, this.hero, function(){
+        //game.state.start('GameOver');
+        this.gameOverStt = true;
+        this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
+        this.hero.body.velocity.y = -gameOptions.playerJump-600;
+        this.hero.body.gravity.y = gameOptions.playerGravity;
       }, null, this);
       //floor collision check
       game.physics.arcade.collide(this.hero, this.floorArray, function(){
@@ -433,11 +454,7 @@ playGame.prototype = {
         this.fadeTween.onComplete.add(function(floor){
                 floor.y = this.highestFloorY;
                 floor.alpha =1;
-                counter++;
-                text.setText(counter);
-                localStorage.setItem(gameOptions.localStorageName,JSON.stringify({
-                        counter: Math.max(counter, savedData.counter)
-                 }));
+
         }, this);
 
         this.fadeLadder = game.add.tween(this.ladderArray[0]).to({
@@ -452,7 +469,7 @@ playGame.prototype = {
             alpha: 0
         }, 200, Phaser.Easing.Cubic.Out);
         this.fadeMonster.onComplete.add(function(monster){
-                monster.y = this.highestFloorY-40;
+                monster.y = this.highestFloorY-38;
                 monster.alpha =1;
         }, this);
 
@@ -460,7 +477,7 @@ playGame.prototype = {
             alpha: 0
         }, 200, Phaser.Easing.Cubic.Out);
         this.fadeMonster_2.onComplete.add(function(monster_2){
-                monster_2.y = this.highestFloorY-40;
+                monster_2.y = this.highestFloorY-38;
                 monster_2.alpha =1;
         }, this);
     },
@@ -471,8 +488,11 @@ playGame.prototype = {
             this.hero.body.velocity.y = 0;
             this.isClimbing = false;
             this.currentLadder = (this.currentLadder + 1) % this.ladderArray.length;
+            counter++;
+            text.setText(counter);
+            localStorage.setItem(gameOptions.localStorageName,JSON.stringify({
+                    counter: Math.max(counter, savedData.counter)
+             }));
         }
     }
-}
-function render() {
 }
