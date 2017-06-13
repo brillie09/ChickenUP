@@ -10,6 +10,7 @@ var gameOptions = {
     floorGap: 250,
     playerGravity: 4500,
     playerSpeed: 420,
+    monsterSpeed: 120,
     climbSpeed: 450,
     playerJump: 900,
 }
@@ -33,6 +34,7 @@ preloadGame.prototype = {
         game.stage.disableVisibilityChange = true;
         game.load.image("ground", 'Assets/ground.png');
         game.load.image("gover", 'Assets/gameover.png');
+        game.load.image("restart", 'Assets/restart.png');
         game.load.image("ladder", 'Assets/ladder.png');
         game.load.spritesheet('monster', 'Assets/monsters.png', 42, 38, 4);
         game.load.spritesheet("button1", 'Assets/playbutton.png', 350, 151, 2);
@@ -88,15 +90,18 @@ gameOver.prototype = {
     jumpfx.stop();
     ostfx.stop();
     background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
-    gover = game.add.sprite(0, 400, 'gover');
-    showscore = game.add.text(500, 200, 'SCORE: ' + counter, { font: "60px Arial", fill: "#ffffff", align: "center" });
+    gover = game.add.sprite(0, 250, 'gover');
+    again = game.add.sprite(0, 700, 'restart');
+    showscore = game.add.text(500, 450, 'SCORE\n' + counter, { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+    showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
     if(localStorage.getItem('highscore')<counter)
     localStorage.setItem('highscore',counter);
     if(localStorage.getItem('highscore')==null)
     localStorage.setItem('highscore',0);
-    hscore = game.add.text(500,300, 'HIGH SCORE: ' + localStorage.getItem('highscore'), { font: "60px Arial", fill: "#ffffff", align: "center" });
+    highscore = game.add.text(500,600, 'BEST\n' + localStorage.getItem('highscore'), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
+    highscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
     showscore.anchor.setTo(0.5,0.5);
-    hscore.anchor.setTo(0.5,0.5);
+    highscore.anchor.setTo(0.5,0.5);
     counter = 0;
   },
   update: function(){
@@ -109,12 +114,13 @@ playGame.prototype = {
     create: function(){
       ostfx.play();
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
-      text = game.add.text(5, 5 , 'Score: 0', { font: "40px Arial", fill: "#ffffff", align: "center" });
-      text.anchor.setTo(0, 0);
       this.canJump = true;
       this.isClimbing = false;
       this.defineGroups();
       this.drawLevel();
+      text = game.add.text(500, 225 , '0', { font: "70px Arial", fill: "#FFFFFF", stroke: "#0000000", strokeThickness: 6, align: "center" });
+      text.setShadow(2, 2, "#5C5C5C", 2, true, false);
+      text.anchor.setTo(0.5, 0.5);
       this.defineTweens();
     },
     drawLevel: function(){
@@ -140,10 +146,10 @@ playGame.prototype = {
     },
     addMonster: function(){
       var ary = [38, 116],
-          aryM = [game.rnd.between(100, 200), game.rnd.between(-200, -100)];
+          aryM = [gameOptions.monsterSpeed*(-1), gameOptions.monsterSpeed];
       var randomY = game.rnd.pick(ary),
           randomVecM = game.rnd.pick(aryM);
-      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(300, 458), this.highestFloorY-38, 'monster');
+      var monster = game.add.sprite((game.width / 2)*(this.currentFloor % 2) + game.rnd.between(400, 458), this.highestFloorY-38, 'monster');
       monster.frame = game.rnd.integerInRange(0, 3);
       this.monsterGroup.add(monster);
       game.physics.enable(monster, Phaser.Physics.ARCADE);
@@ -152,11 +158,11 @@ playGame.prototype = {
       monster.body.onWorldBounds = new Phaser.Signal();
       monster.body.onWorldBounds.add(function(sprite, up, down, left, right){
           if(left){
-              //this.isMovingRight = true;
+              this.isMovingRight = true;
               monster.scale.x = 1;
           }
           if(right){
-              //this.isMovingRight = false;
+              this.isMovingRight = false;
               monster.scale.x = -1;
           }
       }, this);
@@ -252,11 +258,11 @@ playGame.prototype = {
     updateMonster: function(){
       for(var i = 0; i<this.monsterArray.length;i++){
         if (i %2 == 1){
-          if(this.monsterArray[i].position.x<500) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
-          if(this.monsterArray[i].position.x>958) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x<500) this.monsterArray[i].body.velocity.x=gameOptions.monsterSpeed;
+          if(this.monsterArray[i].position.x>958) this.monsterArray[i].body.velocity.x=-gameOptions.monsterSpeed;
         }else{
-          if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=game.rnd.between(100,200);
-          if(this.monsterArray[i].position.x>458) this.monsterArray[i].body.velocity.x=-game.rnd.between(100,200);
+          if(this.monsterArray[i].position.x<0) this.monsterArray[i].body.velocity.x=gameOptions.monsterSpeed;
+          if(this.monsterArray[i].position.x>458) this.monsterArray[i].body.velocity.x=-gameOptions.monsterSpeed;
         }
       }
     },
@@ -305,8 +311,6 @@ playGame.prototype = {
                     item.y += gameOptions.floorGap;
                 }, this);
                 this.hero.y += gameOptions.floorGap;
-                counter++;
-                text.setText('Score: ' + counter);
         }, this)
         this.fadeTween = game.add.tween(this.floorArray[0]).to({
             alpha: 0
@@ -314,6 +318,8 @@ playGame.prototype = {
         this.fadeTween.onComplete.add(function(floor){
                 floor.y = this.highestFloorY;
                 floor.alpha =1;
+                counter++;
+                text.setText(counter);
         }, this);
 
         this.fadeLadder = game.add.tween(this.ladderArray[0]).to({
