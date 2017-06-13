@@ -122,7 +122,7 @@ gameOver.prototype = {
 var playGame = function(game){}
 playGame.prototype = {
     create: function(){
-      savedData = localStorage.getItem(gameOptions.localStorageName) == null ? {counter : 10} : JSON.parse(localStorage.getItem(gameOptions.localStorageName));
+      savedData = localStorage.getItem(gameOptions.localStorageName) == null ? {counter : 0} : JSON.parse(localStorage.getItem(gameOptions.localStorageName));
       ostfx.play();
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       this.canJump = true;
