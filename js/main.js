@@ -183,9 +183,7 @@ playGame.prototype = {
                   this.addLadder(this.highestFloorY);
                   this.addDiamond();
                   this.addMonster();
-                  randomAry = [4,5];
-                  randomM2 = game.rnd.pick(randomAry);
-                  if(this.currentFloor == randomM2){
+                  if(this.currentFloor == 5){
                     this.addMonster_2();
                   }
                 }
@@ -261,6 +259,7 @@ playGame.prototype = {
         game.physics.enable(diamond, Phaser.Physics.ARCADE);
         diamond.body.immovable = true;
         this.diamondGroup.add(diamond);
+        this.diamondArray.push(diamond);
     },
     addHero: function(){
         this.hero = game.add.sprite(5 , game.height * gameOptions.floorStart - 100, "hero");
