@@ -1,7 +1,7 @@
 //ver3
 var text =0;
 var counter =0;
-var savedData;
+var savedData, emitter;
 var game;
 var gameOptions = {
     gameWidth: 1000,
@@ -36,23 +36,29 @@ preloadGame.prototype = {
         game.load.image("ground", 'Assets/ground.png');
         game.load.image("gover", 'Assets/gameover.png');
         game.load.image("restart", 'Assets/restart.png');
-        game.load.image("ladder", 'Assets/ladder.png');
+        game.load.spritesheet("ladder", 'Assets/ladder.png', 40, 156, 4);
         game.load.spritesheet('monster', 'Assets/monsters.png', 42, 38, 4);
         game.load.spritesheet("button1", 'Assets/playbutton.png', 350, 151, 2);
         game.load.spritesheet("button2", 'Assets/button.png', 230, 110, 2);
         game.load.image("instruct", 'Assets/instruct.png');
         game.load.image("background", 'Assets/sky.png');
         game.load.image("title", 'Assets/title.png');
+        game.load.image("firework", 'Assets/diamondparticle.png');
         game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
         game.load.audio('menusong', ['Assets/soundfx/menusong.mp3', 'Assets/soundfx/menusong.ogg'])
         game.load.audio('jump', ['Assets/soundfx/jump.mp3', 'Assets/soundfx/jump.ogg']);
         game.load.audio('ost', ['Assets/soundfx/ost.mp3', 'Assets/soundfx/ost.ogg']);
         game.load.audio('dead', ['Assets/soundfx/dead.mp3', 'Assets/soundfx/dead.ogg']);
-
+        game.load.audio('newbest', ['Assets/soundfx/highscore.mp3', 'Assets/soundfx/highscore.ogg']);
+        game.load.audio('ohno', ['Assets/soundfx/ohno.mp3', 'Assets/soundfx/ohno.ogg']);
+        game.load.audio('newbestOst', ['Assets/soundfx/highscoreOst.mp3', 'Assets/soundfx/highscoreOst.ogg']);
     },
     create: function(){
       game.physics.startSystem(Phaser.Physics.ARCADE);
       music = game.add.audio('menusong');
+      newbestfx = game.add.audio('newbest');
+      newbestOstfx = game.add.audio('newbestOst');
+      ohnofx = game.add.audio('ohno');
       jumpfx = game.add.audio('jump');
       ostfx = game.add.audio('ost');
       deadfx = game.add.audio('dead');
@@ -92,16 +98,26 @@ gameOver.prototype = {
     background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
     gover = game.add.sprite(0, 250, 'gover');
     again = game.add.sprite(0, 700, 'restart');
+    emitter = game.add.emitter(0, 0, 100);
+    emitter.makeParticles('firework');
+    emitter.gravity = 200;
+    emitter.setAlpha(0.4, 0.6);
     /*showscore = game.add.text(500, 450, 'SCORE\n' + counter, { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
     showscore.anchor.setTo(0.5,0.5);
     showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);*/
 
     if(counter > savedData.counter){
       //savedData.counter = counter;
+
       showscore = game.add.text(500, 520, 'NEW CHICKEN BEST\n' + counter, { font: "50px Arial", fill: "#FFF90F", stroke: "#0000000", strokeThickness: 6, align: "center" });
       showscore.anchor.setTo(0.5,0.5);
       showscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
       game.add.tween(showscore.scale).to( { x: 1.1, y: 1.1 }, 250, "Sine.easeInOut", true, 0, -1, true);
+      newbestOstfx.play();
+      newbestfx.play();
+      emitter.x = showscore.x;
+      emitter.y = showscore.y;
+      emitter.start(true, 1000, null, 20);
 
       /*highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
       highScoreText.anchor.setTo(0.5,0.5);
@@ -114,6 +130,7 @@ gameOver.prototype = {
       highScoreText = game.add.text(500,600, 'BEST\n' + savedData.counter.toString(), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
       highScoreText.anchor.setTo(0.5,0.5);
       highScoreText.setShadow(2, 2, "#5C5C5C", 2, true, false);
+      ohnofx.play();
     }
     /*highscore = game.add.text(500,600, 'BEST\n' + localStorage.getItem('highscore'), { font: "50px Arial", fill: "#ffffff", stroke: "#0000000", strokeThickness: 6, align: "center" });
     highscore.setShadow(2, 2, "#5C5C5C", 2, true, false);
@@ -123,6 +140,10 @@ gameOver.prototype = {
   update: function(){
     background.tilePosition.y += 1;
     if (game.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+      newbestfx.stop();
+      newbestOstfx.stop();
+      ohnofx.stop();
+
       counter = 0;
       game.state.start("PlayGame");
     }
@@ -224,6 +245,7 @@ playGame.prototype = {
     addLadder: function(y){
         var ladderPos = this.currentFloor % 2 == 0 ? ((game.width / 2) - 100) : ((game.width / 2) + 100)
         var ladder = game.add.sprite(ladderPos, y, "ladder");
+        ladder.frame = game.rnd.integerInRange(0, 3);
         this.ladderGroup.add(ladder);
         ladder.anchor.set(0.5, 0);
         game.physics.enable(ladder, Phaser.Physics.ARCADE);
