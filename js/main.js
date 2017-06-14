@@ -43,6 +43,7 @@ preloadGame.prototype = {
         game.load.image("instruct", 'Assets/instruct.png');
         game.load.image("background", 'Assets/sky.png');
         game.load.image("title", 'Assets/title.png');
+        game.load.image("diamond", 'Assets/diamond.png');
         game.load.image("firework", 'Assets/diamondparticle.png');
         game.load.spritesheet("hero", 'Assets/chicken.png',40,58);
         game.load.audio('menusong', ['Assets/soundfx/menusong.mp3', 'Assets/soundfx/menusong.ogg'])
@@ -143,7 +144,6 @@ gameOver.prototype = {
       newbestfx.stop();
       newbestOstfx.stop();
       ohnofx.stop();
-
       counter = 0;
       game.state.start("PlayGame");
     }
@@ -173,6 +173,7 @@ playGame.prototype = {
         this.highestFloorY = game.height * gameOptions.floorStart;
         this.floorArray = [];
         this.ladderArray = [];
+        this.diamondArray = [];
         this.monsterArray = [];
         this.monster_2Array = [];
         this.isMovingRight = true;
@@ -180,6 +181,7 @@ playGame.prototype = {
                 this.addFloor();
                 if(this.currentFloor >= 0){
                   this.addLadder(this.highestFloorY);
+                  this.addDiamond();
                   this.addMonster();
                   randomAry = [3,4,5,6];
                   randomM2 = game.rnd.pick(randomAry);
@@ -252,6 +254,14 @@ playGame.prototype = {
         ladder.body.immovable = true;
         this.ladderArray.push(ladder);
     },
+    addDiamond: function(){
+        var diamondX = this.currentFloor % 2 == 0 ? ((game.width / 2) - game.rnd.integerInRange(40, game.width/2 - 40)) : ((game.width / 2) + game.rnd.integerInRange(40, game.width/2 - 40));
+        var diamond = game.add.sprite(diamondX, this.highestFloorY - gameOptions.floorGap / 2, "diamond");
+        diamond.anchor.set(0.5);
+        game.physics.enable(diamond, Phaser.Physics.ARCADE);
+        diamond.body.immovable = true;
+        this.diamondGroup.add(diamond);
+    },
     addHero: function(){
         this.hero = game.add.sprite(5 , game.height * gameOptions.floorStart - 100, "hero");
         this.hero.animations.add('run', [0,1,2,3], 10, true);
@@ -286,10 +296,12 @@ playGame.prototype = {
         this.gameGroup = game.add.group();
         this.floorGroup = game.add.group();
         this.ladderGroup = game.add.group();
+        this.diamondGroup = game.add.group();
         this.monsterGroup = game.add.group();
         this.monster_2Group = game.add.group();
         this.gameGroup.add(this.floorGroup);
         this.gameGroup.add(this.ladderGroup);
+        this.gameGroup.add(this.diamondGroup);
         this.gameGroup.add(this.monsterGroup);
         this.gameGroup.add(this.monster_2Group);
     },
@@ -299,6 +311,7 @@ playGame.prototype = {
           this.checkCollision();
           this.checkLadderCollision();
           this.checkLadder_2Collision();
+          this.checkDiamondCollision();
           this.heroOnLadder();
           this.updateMonster();
           this.updateMonster_2();
@@ -450,6 +463,16 @@ playGame.prototype = {
             }
         }, null, this);
     },
+    checkDiamondCollision: function(){
+        game.physics.arcade.overlap(this.hero, this.diamondGroup, function(player, diamond){
+          counter++;
+          text.setText(counter);
+          localStorage.setItem(gameOptions.localStorageName,JSON.stringify({
+                  counter: Math.max(counter, savedData.counter)
+           }));
+          diamond.kill();
+        }, null, this);
+    },
     defineTweens: function(){
         this.scrollTween = game.add.tween(this.gameGroup).to({
             y: gameOptions.floorGap
@@ -466,6 +489,9 @@ playGame.prototype = {
                     item.y += gameOptions.floorGap;
                 }, this);
                 this.ladderGroup.forEach(function(item) {
+                    item.y += gameOptions.floorGap;
+                }, this);
+                this.diamondGroup.forEach(function(item) {
                     item.y += gameOptions.floorGap;
                 }, this);
                 this.hero.y += gameOptions.floorGap;
@@ -485,6 +511,14 @@ playGame.prototype = {
         this.fadeLadder.onComplete.add(function(ladder){
                 ladder.y = this.highestFloorY;
                 ladder.alpha =1;
+        }, this);
+
+        this.fadeDiamond = game.add.tween(this.diamondArray[0]).to({
+            alpha: 0
+        }, 200, Phaser.Easing.Cubic.Out);
+        this.fadeDiamond.onComplete.add(function(diamond){
+                diamond.y = this.highestFloorY;
+                diamond.alpha =1;
         }, this);
 
         this.fadeMonster = game.add.tween(this.monsterArray[0]).to({
