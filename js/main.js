@@ -183,7 +183,7 @@ playGame.prototype = {
                   this.addLadder(this.highestFloorY);
                   this.addDiamond();
                   this.addMonster();
-                  randomAry = [3,4,5,6];
+                  randomAry = [4,5];
                   randomM2 = game.rnd.pick(randomAry);
                   if(this.currentFloor == randomM2){
                     this.addMonster_2();
