@@ -53,6 +53,8 @@ preloadGame.prototype = {
         game.load.audio('newbest', ['Assets/soundfx/highscore.mp3', 'Assets/soundfx/highscore.ogg']);
         game.load.audio('ohno', ['Assets/soundfx/ohno.mp3', 'Assets/soundfx/ohno.ogg']);
         game.load.audio('newbestOst', ['Assets/soundfx/highscoreOst.mp3', 'Assets/soundfx/highscoreOst.ogg']);
+        game.load.audio('coin', ['Assets/soundfx/coin.mp3', 'Assets/soundfx/coin.ogg']);
+
     },
     create: function(){
       game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -61,6 +63,7 @@ preloadGame.prototype = {
       newbestOstfx = game.add.audio('newbestOst');
       ohnofx = game.add.audio('ohno');
       jumpfx = game.add.audio('jump');
+      coinfx = game.add.audio('coin');
       ostfx = game.add.audio('ost');
       deadfx = game.add.audio('dead');
       music.play();
@@ -470,6 +473,7 @@ playGame.prototype = {
                   counter: Math.max(counter, savedData.counter)
            }));
           diamond.kill();
+          coinfx.play();
         }, null, this);
     },
     defineTweens: function(){
