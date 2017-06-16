@@ -1,5 +1,5 @@
 //ver3
-var text =0;
+var text =0, noti;
 var counter =0;
 var savedData, emitter;
 var game;
@@ -10,11 +10,11 @@ var gameOptions = {
     floorGap: 250,
     playerGravity: 4500,
     playerSpeed: 400,
-    monsterSpeed: 115,
+    monsterSpeed: 110,
     monster_2Speed: 90,
     climbSpeed: 450,
     playerJump: 900,
-    timeAddMonster: 2,
+    powerUnlock: 12,
     localStorageName: "ChickenUP"
 }
 window.onload = function() {
@@ -54,6 +54,7 @@ preloadGame.prototype = {
         game.load.audio('ohno', ['Assets/soundfx/ohno.mp3', 'Assets/soundfx/ohno.ogg']);
         game.load.audio('newbestOst', ['Assets/soundfx/highscoreOst.mp3', 'Assets/soundfx/highscoreOst.ogg']);
         game.load.audio('coin', ['Assets/soundfx/coin.mp3', 'Assets/soundfx/coin.ogg']);
+        game.load.audio('hit', 'Assets/soundfx/hit.mp3');
 
     },
     create: function(){
@@ -66,6 +67,7 @@ preloadGame.prototype = {
       coinfx = game.add.audio('coin');
       ostfx = game.add.audio('ost');
       deadfx = game.add.audio('dead');
+      hitfx = game.add.audio('hit');
       music.play();
 
       background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
@@ -161,11 +163,15 @@ playGame.prototype = {
       game.background = game.add.tileSprite(0, 0, 1000, 1050, 'background');
       this.canJump = true;
       this.isClimbing = false;
+      this.unlockPower = false;
       this.defineGroups();
       this.drawLevel();
       text = game.add.text(500, 225 , '0', { font: "70px Arial", fill: "#FFFFFF", stroke: "#0000000", strokeThickness: 6, align: "center" });
       text.setShadow(2, 2, "#5C5C5C", 2, true, false);
       text.anchor.setTo(0.5, 0.5);
+      noti = game.add.text(500, 520, 'MARIO POWER UNLOCKED!', { font: "50px Arial", fill: "#FFF90F", stroke: "#0000000", strokeThickness: 6, align: "center" });
+      noti.anchor.setTo(0.5,0.5);
+      noti.alpha = 0;
       this.defineTweens();
     },
     drawLevel: function(){
@@ -381,26 +387,46 @@ playGame.prototype = {
       }
     },
     checkCollision: function(){
+      if(counter >= gameOptions.powerUnlock){
+          this.unlockPower = true;
+          game.add.tween(noti).to( { alpha: 0.9 }, 250, "Sine.easeInOut", true, 0, -1, true);
+      }
+      if(counter > gameOptions.powerUnlock + 1){
+        noti.destroy();
+      }
       //monster collision check
       game.physics.arcade.overlap(this.monsterArray, this.hero, function(){
-        deadfx.play();
+        /*deadfx.play();
         this.gameOverStt = true;
         this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
         this.hero.body.velocity.y = -gameOptions.playerJump-600;
-        this.hero.body.gravity.y = gameOptions.playerGravity;
-        /*if(this.hero.x + 20 <= this.monsterArray[this.currentMonster].x - 21 || this.hero.x - 20 >= this.monsterArray[this.currentMonster].x + 21){
-          deadfx.play();
-          this.gameOverStt = true;
-          this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
-          this.hero.body.velocity.y = -gameOptions.playerJump-600;
-          this.hero.body.gravity.y = gameOptions.playerGravity;
+        this.hero.body.gravity.y = gameOptions.playerGravity;*/
+        if(this.unlockPower == true){
+          if(this.hero.x + 20 <= this.monsterArray[this.currentMonster].x - 21 || this.hero.x - 20 >= this.monsterArray[this.currentMonster].x + 21 || this.hero.y >= this.monsterArray[this.currentMonster].x + 38){
+            deadfx.play();
+            this.gameOverStt = true;
+            this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
+            this.hero.body.velocity.y = -gameOptions.playerJump-600;
+            this.hero.body.gravity.y = gameOptions.playerGravity;
+          }else{
+            this.monsterArray[this.currentMonster].kill();
+            hitfx.play();
+            counter++;
+            text.setText(counter);
+            localStorage.setItem(gameOptions.localStorageName,JSON.stringify({
+                    counter: Math.max(counter, savedData.counter)
+             }));
+            this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
+            this.hero.body.velocity.y = -gameOptions.playerJump + 100;
+            this.hero.body.gravity.y = gameOptions.playerGravity;
+          }
+        }else{
+            deadfx.play();
+            this.gameOverStt = true;
+            this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
+            this.hero.body.velocity.y = -gameOptions.playerJump-600;
+            this.hero.body.gravity.y = gameOptions.playerGravity;
         }
-        else{
-          this.monsterArray[this.currentMonster].kill();
-          this.hero.body.velocity.x = game.rnd.integerInRange(-20, 20);
-          this.hero.body.velocity.y = -gameOptions.playerJump;
-          this.hero.body.gravity.y = gameOptions.playerGravity;
-        }*/
       }, null, this);
       game.physics.arcade.overlap(this.monster_2Array, this.hero, function(){
         //game.state.start('GameOver');
@@ -513,6 +539,7 @@ playGame.prototype = {
             alpha: 0
         }, 200, Phaser.Easing.Cubic.Out);
         this.fadeMonster.onComplete.add(function(monster){
+                monster.revive();
                 monster.y = this.highestFloorY-38;
                 monster.alpha =1;
         }, this);
