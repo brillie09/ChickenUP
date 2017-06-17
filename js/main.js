@@ -14,7 +14,7 @@ var gameOptions = {
     monster_2Speed: 90,
     climbSpeed: 450,
     playerJump: 900,
-    powerUnlock: 12,
+    powerUnlock: 5,
     localStorageName: "ChickenUP"
 }
 window.onload = function() {
